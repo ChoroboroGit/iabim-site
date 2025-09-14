@@ -1,0 +1,39 @@
+site_name: My Docs
+site_name: IABIM
+site_url: https://iabim.eu
+site_description: "BIM Documentation for Industry – Revit • IFC • ISO 19650 • Automation (Python/pyRevit)"
+site_author: "IABIM"
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+    - content.image.lightbox
+
+  icon:
+    logo: material/domain
+  palette:
+    - scheme: default
+      primary: blue grey
+      accent: red
+
+
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.superfences
+  - pymdownx.emoji
+  - admonition
+  - footnotes
+
+nav:
+  - Strona główna: index.md
+  - Portfolio: portfolio.md
+  - Usługi: uslugi.md
+  - O nas: o-nas.md
+  - Kontakt: kontakt.md

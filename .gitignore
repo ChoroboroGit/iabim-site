@@ -1,0 +1,16 @@
+# katalog budowania MkDocs
+/site/
+
+# środowiska Pythona
+venv/
+.env/
+__pycache__/
+*.pyc
+
+# pliki PyCharm
+.idea/
+*.iml
+
+# systemowe
+.DS_Store
+Thumbs.db
