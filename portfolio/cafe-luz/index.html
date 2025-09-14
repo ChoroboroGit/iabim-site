@@ -499,14 +499,21 @@
 
 <h1 id="cafe-luz">Café Luz</h1>
 <hr />
-<p>name: "Café Luz"
-type: "Budynek usługowy"
-area: "13 440 m²"
+<p>name: "Café Luz"<br />
+type: "Budynek usługowy"<br />
+area: "13 440 m²"<br />
 stage: "Projekt budowlany / Projekt Wykonawczy"</p>
 <hr />
 <p>Opis projektu, wizualizacje i rysunki.</p>
 <p><img alt="Wizualizacja" src="../../img/cafe-luz.png" />
 <img alt="Wizualizacja" src="../../img/cafe-luz.png" /></p>
+<p>import numbers
+from mkdocs.config import base, config_options as c</p>
+<p>class _Rectangle(base.Config):
+    width = c.Type(numbers.Real)  # required
+    height = c.Type(numbers.Real)  # required</p>
+<p>class MyPluginConfig(base.Config):
+    add_rectangles = c.ListOfItems(c.SubConfig(_Rectangle))  # required</p>
 
 
 
