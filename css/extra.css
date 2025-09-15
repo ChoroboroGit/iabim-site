@@ -1,0 +1,17 @@
+/* Domyślnie desktop */
+.onas-mobile {
+  display: none;
+}
+.onas-desktop {
+  display: block;
+}
+
+/* Mobile: max 768px */
+@media screen and (max-width: 768px) {
+  .onas-desktop {
+    display: none;
+  }
+  .onas-mobile {
+    display: block;
+  }
+}
