@@ -1,8 +1,9 @@
-site_name: My Docs
 site_name: IABIM
 site_url: https://iabim.eu
 site_description: "BIM Documentation for Industry – Revit • IFC • ISO 19650 • Automation (Python/pyRevit)"
 site_author: "IABIM"
+
+copyright: "&copy; 2025 Industry Architecture iABIM &bull; <a href='/polityka-prywatnosci/'>Polityka prywatności</a>"
 
 theme:
   name: material
@@ -12,8 +13,6 @@ theme:
     - navigation.top
     - content.code.copy
     - toc.integrate
-    - content.image.lightbox
-
   icon:
     logo: material/domain
   palette:
@@ -21,19 +20,36 @@ theme:
       primary: blue grey
       accent: red
 
+extra_css:
+  - css/extra.css
 
+plugins:
+  - search
+  - macros
 
 markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.superfences
   - pymdownx.emoji
+  - pymdownx.tabbed
   - admonition
   - footnotes
+  - tables
 
 nav:
-  - Strona główna: index.md
-  - Portfolio: portfolio.md
-  - Usługi: uslugi.md
+  - Start: index.md
   - O nas: o-nas.md
+  - Usługi: uslugi.md
+  - Portfolio: portfolio.md
   - Kontakt: kontakt.md
+
+extra:
+  social:
+    - icon: fontawesome/solid/envelope
+      link: mailto:kontakt@iabim.eu
+      name: E-mail
+    - icon: fontawesome/solid/phone
+      link: tel:+48785195173
+      name: Telefon
+  generator: false
