@@ -74,179 +74,23 @@
   align-items: center;
 }
 
-/* Linia z tytułem i menu */
-.hero-line {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  width: 100%;
-}
-
 .hero-title {
   font-weight: 900;
   white-space: nowrap;
-  margin: 0;
+  margin-bottom: 1rem;
   color: white;
   font-size: 3vw;
   animation: growToFull 1.5s ease-out 0.3s forwards;
-  display: inline-flex;
-  align-items: baseline;
 }
 
 @keyframes growToFull {
-  from { font-size: 3vw; }
-  to { font-size: 5vw; }
+  from {
+    font-size: 3vw;
+  }
+  to {
+    font-size: 7.5vw;
+  }
 }
-
-/* iABIM - zostaje na miejscu */
-.hero-title .accent {
-  display: inline;
-}
-
-/* Kontener na znikające litery - ukryj PERMANENTNIE po animacji */
-.fade-text {
-  display: inline;
-}
-
-.fade-text.hidden {
-  visibility: hidden !important;
-  width: 0 !important;
-  overflow: hidden !important;
-}
-
-/* Litery znikają natychmiast + po ostatniej ukryj cały kontener */
-.fade-text .letter {
-  display: inline-block;
-  animation: letterSnap 0.01s steps(1) forwards;
-}
-
-.fade-text .letter:first-child {
-  animation: letterSnapAndHide 0.01s steps(1) 4.414s forwards;
-}
-
-@keyframes letterSnap {
-  to { opacity: 0; }
-}
-
-@keyframes letterSnapAndHide {
-  to { opacity: 0; }
-}
-
-/* Litery znikają natychmiast (steps(1) = skok) */
-.fade-text .letter {
-  display: inline-block;
-  animation: letterSnap 0.01s steps(1) forwards;
-}
-
-@keyframes letterSnap {
-  to { opacity: 0; }
-}
-
-/* Delay zsynchronizowany z ruchem iABIM */
-.fade-text .letter:nth-child(23) { animation-delay: 2.5s; }
-.fade-text .letter:nth-child(22) { animation-delay: 2.587s; }
-.fade-text .letter:nth-child(21) { animation-delay: 2.674s; }
-.fade-text .letter:nth-child(20) { animation-delay: 2.761s; }
-.fade-text .letter:nth-child(19) { animation-delay: 2.848s; }
-.fade-text .letter:nth-child(18) { animation-delay: 2.935s; }
-.fade-text .letter:nth-child(17) { animation-delay: 3.022s; }
-.fade-text .letter:nth-child(16) { animation-delay: 3.109s; }
-.fade-text .letter:nth-child(15) { animation-delay: 3.196s; }
-.fade-text .letter:nth-child(14) { animation-delay: 3.283s; }
-.fade-text .letter:nth-child(13) { animation-delay: 3.370s; }
-.fade-text .letter:nth-child(12) { animation-delay: 3.457s; }
-.fade-text .letter:nth-child(11) { animation-delay: 3.544s; }
-.fade-text .letter:nth-child(10) { animation-delay: 3.631s; }
-.fade-text .letter:nth-child(9) { animation-delay: 3.718s; }
-.fade-text .letter:nth-child(8) { animation-delay: 3.805s; }
-.fade-text .letter:nth-child(7) { animation-delay: 3.892s; }
-.fade-text .letter:nth-child(6) { animation-delay: 3.979s; }
-.fade-text .letter:nth-child(5) { animation-delay: 4.066s; }
-.fade-text .letter:nth-child(4) { animation-delay: 4.153s; }
-.fade-text .letter:nth-child(3) { animation-delay: 4.240s; }
-.fade-text .letter:nth-child(2) { animation-delay: 4.327s; }
-.fade-text .letter:nth-child(1) { animation-delay: 4.414s; }
-
-/* === MENU INLINE Z iABIM === */
-.hero-menu {
-  display: inline;
-  font-size: 0.4em;
-  letter-spacing: 0.05em;
-  margin-left: 0.5em;
-}
-
-.hero-menu a {
-  color: rgba(255,255,255,0.9);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.hero-menu a:hover {
-  color: #ef5350;
-}
-
-.hero-menu .menu-sep {
-  margin: 0 0.3em;
-  color: rgba(255,255,255,0.4);
-  opacity: 0;
-  animation: letterAppear 0.01s steps(1) forwards;
-  font-weight: 300;
-}
-
-/* Litery menu - ukryte na start, pojawiają się od lewej */
-.hero-menu .menu-letter span {
-  opacity: 0;
-  animation: letterAppear 0.01s steps(1) forwards;
-}
-
-@keyframes letterAppear {
-  to { opacity: 1; }
-}
-
-/* Animacja menu - pojawia się po zniknięciu "Industry Architecture" */
-/* O nas (5 liter) */
-.hero-menu a:nth-of-type(1) span:nth-child(1) { animation-delay: 4.5s; }
-.hero-menu a:nth-of-type(1) span:nth-child(2) { animation-delay: 4.55s; }
-.hero-menu a:nth-of-type(1) span:nth-child(3) { animation-delay: 4.6s; }
-.hero-menu a:nth-of-type(1) span:nth-child(4) { animation-delay: 4.65s; }
-.hero-menu a:nth-of-type(1) span:nth-child(5) { animation-delay: 4.7s; }
-
-/* Separator 1 */
-.hero-menu .menu-sep:nth-of-type(1) { animation-delay: 4.75s; }
-
-/* Uslugi (6 liter) */
-.hero-menu a:nth-of-type(2) span:nth-child(1) { animation-delay: 4.8s; }
-.hero-menu a:nth-of-type(2) span:nth-child(2) { animation-delay: 4.85s; }
-.hero-menu a:nth-of-type(2) span:nth-child(3) { animation-delay: 4.9s; }
-.hero-menu a:nth-of-type(2) span:nth-child(4) { animation-delay: 4.95s; }
-.hero-menu a:nth-of-type(2) span:nth-child(5) { animation-delay: 5.0s; }
-.hero-menu a:nth-of-type(2) span:nth-child(6) { animation-delay: 5.05s; }
-
-/* Separator 2 */
-.hero-menu .menu-sep:nth-of-type(2) { animation-delay: 5.1s; }
-
-/* Portfolio (9 liter) */
-.hero-menu a:nth-of-type(3) span:nth-child(1) { animation-delay: 5.15s; }
-.hero-menu a:nth-of-type(3) span:nth-child(2) { animation-delay: 5.2s; }
-.hero-menu a:nth-of-type(3) span:nth-child(3) { animation-delay: 5.25s; }
-.hero-menu a:nth-of-type(3) span:nth-child(4) { animation-delay: 5.3s; }
-.hero-menu a:nth-of-type(3) span:nth-child(5) { animation-delay: 5.35s; }
-.hero-menu a:nth-of-type(3) span:nth-child(6) { animation-delay: 5.4s; }
-.hero-menu a:nth-of-type(3) span:nth-child(7) { animation-delay: 5.45s; }
-.hero-menu a:nth-of-type(3) span:nth-child(8) { animation-delay: 5.5s; }
-.hero-menu a:nth-of-type(3) span:nth-child(9) { animation-delay: 5.55s; }
-
-/* Separator 3 */
-.hero-menu .menu-sep:nth-of-type(3) { animation-delay: 5.6s; }
-
-/* Kontakt (7 liter) */
-.hero-menu a:nth-of-type(4) span:nth-child(1) { animation-delay: 5.65s; }
-.hero-menu a:nth-of-type(4) span:nth-child(2) { animation-delay: 5.7s; }
-.hero-menu a:nth-of-type(4) span:nth-child(3) { animation-delay: 5.75s; }
-.hero-menu a:nth-of-type(4) span:nth-child(4) { animation-delay: 5.8s; }
-.hero-menu a:nth-of-type(4) span:nth-child(5) { animation-delay: 5.85s; }
-.hero-menu a:nth-of-type(4) span:nth-child(6) { animation-delay: 5.9s; }
-.hero-menu a:nth-of-type(4) span:nth-child(7) { animation-delay: 5.95s; }
 
 .hero-title .accent {
   color: #ef5350;
