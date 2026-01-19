@@ -80,7 +80,7 @@
   margin-bottom: 1rem;
   color: white;
   font-size: 7.5vw;
-  animation: growFromNothing 1.5s ease-out 0.3s both;
+  animation: growFromNothing 3s ease-out 0.3s both;
 }
 
 @keyframes growFromNothing {
