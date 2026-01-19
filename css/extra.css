@@ -187,7 +187,7 @@
 /* --- Portfolio Preview --- */
 .portfolio-preview {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   row-gap: 0.2rem;
   column-gap: 0.2rem;
   margin: 0.6rem 0;
@@ -202,6 +202,11 @@
   border: 1px solid #e0e0e0;
 }
 
+/* Ukryj projekty 9+ domyślnie */
+.portfolio-preview:not(.expanded) .portfolio-card:nth-child(n+9) {
+  display: none;
+}
+
 .portfolio-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
@@ -209,7 +214,7 @@
 
 .portfolio-card img {
   width: 100%;
-  height: 180px;
+  height: 140px;
   object-fit: cover;
   filter: grayscale(100%);
   transition: filter 0.3s ease;
@@ -220,23 +225,23 @@
 }
 
 .portfolio-info {
-  padding: 1rem;
+  padding: 0.6rem;
 }
 
 .portfolio-info h4 {
-  margin: 0 0 0.3rem 0;
+  margin: 0 0 0.2rem 0;
   color: #37474f;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
 }
 
 .portfolio-info p {
-  margin: 0 0 0.4rem 0;
-  font-size: 0.8rem;
+  margin: 0 0 0.3rem 0;
+  font-size: 0.7rem;
   color: #666;
 }
 
 .portfolio-info a {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #ef5350;
   text-decoration: none;
   font-weight: 500;
@@ -246,7 +251,27 @@
   text-decoration: underline;
 }
 
-@media screen and (max-width: 768px) {
+/* Przycisk "Pokaż więcej" */
+.portfolio-toggle {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.portfolio-toggle .btn {
+  cursor: pointer;
+}
+
+.portfolio-preview.expanded + .portfolio-toggle .btn {
+  display: none;
+}
+
+@media screen and (max-width: 1024px) {
+  .portfolio-preview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 600px) {
   .portfolio-preview {
     grid-template-columns: 1fr;
   }
