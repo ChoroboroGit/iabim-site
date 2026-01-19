@@ -153,12 +153,12 @@
 @media screen and (max-width: 768px) {
   .hero-title {
     white-space: normal;
-    font-size: 0vw;
+    font-size: 1vw;
     animation: growToFullMobile 1.5s ease-out 0.3s forwards;
   }
 
   @keyframes growToFullMobile {
-    from { font-size: 5vw; }
+    from { font-size: 1vw; }
     to { font-size: 9vw; }
   }
   .tagline {
