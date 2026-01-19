@@ -75,25 +75,23 @@
 }
 
 .hero-title {
-  font-weight: 900;
-  white-space: nowrap;
-  margin-bottom: 1rem;
-  color: white;
-  font-size: clamp(2rem, 8vw, 20vw);
-
-  animation: growFromNothing 1s ease-out 0.3s both;
-}
-
-@keyframes growFromNothing {
-  from {
-    transform: scale(0);
-    opacity: 0;
+    font-weight: 900;
+    white-space: nowrap;
+    margin-bottom: 1rem;
+    color: white;
+    font-size: 3vw;
+    animation: growToFull 1.5s ease-out 0.3s forwards;
   }
-  to {
-    transform: scale(1);
-    opacity: 1;
+
+  @keyframes growToFull {
+    from {
+      font-size: 3vw;
+    }
+    to {
+      font-size: 7.5vw;
+    }
   }
-}
+
 
 .hero-title .accent {
   color: #ef5350;
