@@ -405,6 +405,7 @@
 }
 
 .gallery-item figcaption {
+  display: none;
   font-style: normal;
   position: absolute;
   bottom: 0;
@@ -416,6 +417,8 @@
   font-size: 0.75rem;
   opacity: 0;
   transition: opacity 0.3s ease;
+
+
 }
 
 .gallery-item:hover figcaption {
