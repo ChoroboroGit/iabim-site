@@ -48,36 +48,86 @@
   }
 }
 
-/* --- Hero Section --- */
-.hero-section {
+/* --- Hero Section Full Screen --- */
+.hero-fullscreen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 3rem 1rem;
   background: linear-gradient(135deg, #37474f 0%, #546e7a 100%);
-  border-radius: 12px;
+  color: white;
+  margin: -1rem -1rem 2rem -1rem;
+  padding: 2rem;
+}
+
+.hero-fullscreen .hero-content {
+  max-width: 800px;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 300;
   margin-bottom: 2rem;
   color: white;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeInDown 0.8s ease-out forwards;
 }
 
-.hero-content h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  color: white;
-}
-
-.hero-content .accent {
+.hero-title .accent {
   color: #ef5350;
+  font-weight: 600;
 }
 
-.hero-subtitle {
-  font-size: 1.15rem;
-  margin-bottom: 0.3rem;
-  opacity: 0.95;
+.hero-taglines {
+  margin-bottom: 2.5rem;
 }
 
-.hero-description {
-  font-size: 0.9rem;
-  opacity: 0.85;
-  margin-bottom: 1.5rem;
+.tagline {
+  font-size: 1.3rem;
+  font-weight: 300;
+  margin: 0.5rem 0;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.tagline-1 {
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
+}
+
+.tagline-2 {
+  animation: fadeInUp 0.6s ease-out 0.7s forwards;
+}
+
+.tagline-3 {
+  animation: fadeInUp 0.6s ease-out 1s forwards;
+}
+
+.hero-fullscreen .hero-buttons {
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out 1.4s forwards;
+}
+
+/* Animacje */
+@keyframes fadeInDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
 }
 
 .hero-buttons {
@@ -85,6 +135,19 @@
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+/* Responsywność hero */
+@media screen and (max-width: 768px) {
+  .hero-title {
+    font-size: 1.8rem;
+  }
+  .tagline {
+    font-size: 1rem;
+  }
+  .hero-fullscreen {
+    padding: 1.5rem;
+  }
 }
 
 /* --- Buttons --- */
