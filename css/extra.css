@@ -66,8 +66,8 @@
 }
 
 .hero-title {
-  font-size: 2.5rem;
-  font-weight: 300;
+  font-size: 4.5rem;
+  font-weight: 700;
   margin-bottom: 2rem;
   color: white;
   opacity: 0;
@@ -77,7 +77,7 @@
 
 .hero-title .accent {
   color: #ef5350;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .hero-taglines {
@@ -140,7 +140,7 @@
 /* Responsywność hero */
 @media screen and (max-width: 768px) {
   .hero-title {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
   }
   .tagline {
     font-size: 1rem;
