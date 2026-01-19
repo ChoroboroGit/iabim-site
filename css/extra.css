@@ -79,16 +79,18 @@
   white-space: nowrap;
   margin-bottom: 1rem;
   color: white;
-  font-size: 3vw;
-  animation: growToFull 1.5s ease-out 0.3s forwards;
+  font-size: 7.5vw;
+  animation: growFromNothing 1.5s ease-out 0.3s both;
 }
 
-@keyframes growToFull {
+@keyframes growFromNothing {
   from {
-    font-size: 3vw;
+    transform: scale(0);
+    opacity: 0;
   }
   to {
-    font-size: 7.5vw;
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
