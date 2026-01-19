@@ -79,7 +79,8 @@
   white-space: nowrap;
   margin-bottom: 1rem;
   color: white;
-  font-size: 15vw;
+  font-size: clamp(2rem, 8vw, 20vw);
+
   animation: growFromNothing 3s ease-out 0.3s both;
 }
 
