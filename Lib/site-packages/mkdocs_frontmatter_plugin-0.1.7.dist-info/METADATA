@@ -1,0 +1,49 @@
+Metadata-Version: 2.1
+Name: mkdocs-frontmatter-plugin
+Version: 0.1.7
+Summary: 
+Author: Diego Canez
+Author-email: canezdiego@gmail.com
+Requires-Python: >=3.9,<4.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Dist: mkdocs (>=1.5.3,<2.0.0)
+Requires-Dist: mkdocs-roamlinks-plugin (>=0.3.2,<0.4.0)
+Description-Content-Type: text/markdown
+
+# Obsidian Dataview Properties to Table Frontmatter plugin
+
+This plugin (wip) creates a markdown table with your dataview frontmatter properties.
+
+
+Example:
+
+![Demo](docs/demo.png)
+
+## Setup
+
+Install the plugin using pip:
+
+```sh
+pip install mkdocs-frontmatter-plugin
+```
+
+Activate the plugin in `mkdocs.yml`:
+
+```
+plugins:
+  - mkdocs_frontmatter_plugin
+```
+
+TODO:
+- [x] Remove `None` values
+- [x] Fix the exclude config
+- [x] Remove quotes around roamlinks
+- [x] Add support for hyperlinks
+- [x] Don't display frontmatter if it is empty
+
+
+
