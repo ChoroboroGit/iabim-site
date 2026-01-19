@@ -81,9 +81,7 @@
   color: white;
   font-size: 3vw;
   animation: growToFull 1.5s ease-out 0.3s forwards;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  text-align: center;
 }
 
 @keyframes growToFull {
@@ -91,20 +89,26 @@
   to { font-size: 7.5vw; }
 }
 
-/* iABIM - startuje przesunięty, płynnie wraca do środka */
+/* iABIM - płynnie jedzie na środek */
 .hero-title .accent {
   display: inline-block;
-  transform: translateX(-30%);
   animation: slideToCenter 2s ease-in-out 2.5s forwards;
+  position: relative;
+  left: 0;
 }
 
 @keyframes slideToCenter {
-  to { transform: translateX(0); }
+  to { left: 50%; transform: translateX(-50%); }
 }
 
-/* Kontener na znikające litery */
+/* Kontener na znikające litery - ukryj na stałe po animacji */
 .fade-text {
   display: inline;
+  animation: hideForever 0.01s steps(1) 4.5s forwards;
+}
+
+@keyframes hideForever {
+  to { visibility: hidden; display: none; }
 }
 
 /* Litery znikają natychmiast (steps(1) = skok) */
@@ -117,7 +121,7 @@
   to { opacity: 0; }
 }
 
-/* Delay zsynchronizowany z ruchem iABIM (2s / 23 litery ≈ 0.087s) */
+/* Delay zsynchronizowany z ruchem iABIM */
 .fade-text .letter:nth-child(23) { animation-delay: 2.5s; }
 .fade-text .letter:nth-child(22) { animation-delay: 2.587s; }
 .fade-text .letter:nth-child(21) { animation-delay: 2.674s; }
@@ -141,6 +145,85 @@
 .fade-text .letter:nth-child(3) { animation-delay: 4.240s; }
 .fade-text .letter:nth-child(2) { animation-delay: 4.327s; }
 .fade-text .letter:nth-child(1) { animation-delay: 4.414s; }
+
+/* === MENU POD iABIM === */
+.hero-menu {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+}
+
+.hero-menu a {
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.hero-menu a:hover {
+  color: #ef5350;
+}
+
+.hero-menu .menu-sep {
+  margin: 0 0.8rem;
+  color: rgba(255,255,255,0.4);
+  opacity: 0;
+  animation: letterAppear 0.01s steps(1) forwards;
+}
+
+/* Litery menu - ukryte na start, pojawiają się od lewej */
+.hero-menu .menu-letter span {
+  opacity: 0;
+  animation: letterAppear 0.01s steps(1) forwards;
+}
+
+@keyframes letterAppear {
+  to { opacity: 1; }
+}
+
+/* Animacja menu - pojawia się po zniknięciu "Industry Architecture" */
+/* O nas (5 liter) */
+.hero-menu a:nth-of-type(1) span:nth-child(1) { animation-delay: 4.5s; }
+.hero-menu a:nth-of-type(1) span:nth-child(2) { animation-delay: 4.55s; }
+.hero-menu a:nth-of-type(1) span:nth-child(3) { animation-delay: 4.6s; }
+.hero-menu a:nth-of-type(1) span:nth-child(4) { animation-delay: 4.65s; }
+.hero-menu a:nth-of-type(1) span:nth-child(5) { animation-delay: 4.7s; }
+
+/* Separator 1 */
+.hero-menu .menu-sep:nth-of-type(1) { animation-delay: 4.75s; }
+
+/* Uslugi (6 liter) */
+.hero-menu a:nth-of-type(2) span:nth-child(1) { animation-delay: 4.8s; }
+.hero-menu a:nth-of-type(2) span:nth-child(2) { animation-delay: 4.85s; }
+.hero-menu a:nth-of-type(2) span:nth-child(3) { animation-delay: 4.9s; }
+.hero-menu a:nth-of-type(2) span:nth-child(4) { animation-delay: 4.95s; }
+.hero-menu a:nth-of-type(2) span:nth-child(5) { animation-delay: 5.0s; }
+.hero-menu a:nth-of-type(2) span:nth-child(6) { animation-delay: 5.05s; }
+
+/* Separator 2 */
+.hero-menu .menu-sep:nth-of-type(2) { animation-delay: 5.1s; }
+
+/* Portfolio (9 liter) */
+.hero-menu a:nth-of-type(3) span:nth-child(1) { animation-delay: 5.15s; }
+.hero-menu a:nth-of-type(3) span:nth-child(2) { animation-delay: 5.2s; }
+.hero-menu a:nth-of-type(3) span:nth-child(3) { animation-delay: 5.25s; }
+.hero-menu a:nth-of-type(3) span:nth-child(4) { animation-delay: 5.3s; }
+.hero-menu a:nth-of-type(3) span:nth-child(5) { animation-delay: 5.35s; }
+.hero-menu a:nth-of-type(3) span:nth-child(6) { animation-delay: 5.4s; }
+.hero-menu a:nth-of-type(3) span:nth-child(7) { animation-delay: 5.45s; }
+.hero-menu a:nth-of-type(3) span:nth-child(8) { animation-delay: 5.5s; }
+.hero-menu a:nth-of-type(3) span:nth-child(9) { animation-delay: 5.55s; }
+
+/* Separator 3 */
+.hero-menu .menu-sep:nth-of-type(3) { animation-delay: 5.6s; }
+
+/* Kontakt (7 liter) */
+.hero-menu a:nth-of-type(4) span:nth-child(1) { animation-delay: 5.65s; }
+.hero-menu a:nth-of-type(4) span:nth-child(2) { animation-delay: 5.7s; }
+.hero-menu a:nth-of-type(4) span:nth-child(3) { animation-delay: 5.75s; }
+.hero-menu a:nth-of-type(4) span:nth-child(4) { animation-delay: 5.8s; }
+.hero-menu a:nth-of-type(4) span:nth-child(5) { animation-delay: 5.85s; }
+.hero-menu a:nth-of-type(4) span:nth-child(6) { animation-delay: 5.9s; }
+.hero-menu a:nth-of-type(4) span:nth-child(7) { animation-delay: 5.95s; }
 
 .hero-title .accent {
   color: #ef5350;
