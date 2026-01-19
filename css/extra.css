@@ -81,7 +81,8 @@
   color: white;
   font-size: 3vw;
   animation: growToFull 1.5s ease-out 0.3s forwards;
-  display: inline-flex;
+  width: 100%;
+  display: flex;
   justify-content: center;
 }
 
@@ -90,55 +91,56 @@
   to { font-size: 7.5vw; }
 }
 
+/* iABIM - startuje przesunięty, płynnie wraca do środka */
+.hero-title .accent {
+  display: inline-block;
+  transform: translateX(-30%);
+  animation: slideToCenter 2s ease-in-out 2.5s forwards;
+}
+
+@keyframes slideToCenter {
+  to { transform: translateX(0); }
+}
+
 /* Kontener na znikające litery */
 .fade-text {
-  display: inline-flex;
+  display: inline;
 }
 
+/* Litery znikają natychmiast (steps(1) = skok) */
 .fade-text .letter {
   display: inline-block;
-  animation: letterFade 0.15s ease-out forwards;
-  animation-play-state: paused;
+  animation: letterSnap 0.01s steps(1) forwards;
 }
 
-/* Uruchom animację po 2.5s (po zakończeniu powiększania) */
-.hero-title .fade-text .letter {
-  animation-play-state: running;
+@keyframes letterSnap {
+  to { opacity: 0; }
 }
 
-@keyframes letterFade {
-  to {
-    opacity: 0;
-    width: 0;
-    margin: 0;
-    padding: 0;
-  }
-}
-
-/* Delay dla każdej litery od końca (23 litery) */
+/* Delay zsynchronizowany z ruchem iABIM (2s / 23 litery ≈ 0.087s) */
 .fade-text .letter:nth-child(23) { animation-delay: 2.5s; }
-.fade-text .letter:nth-child(22) { animation-delay: 2.58s; }
-.fade-text .letter:nth-child(21) { animation-delay: 2.66s; }
-.fade-text .letter:nth-child(20) { animation-delay: 2.74s; }
-.fade-text .letter:nth-child(19) { animation-delay: 2.82s; }
-.fade-text .letter:nth-child(18) { animation-delay: 2.90s; }
-.fade-text .letter:nth-child(17) { animation-delay: 2.98s; }
-.fade-text .letter:nth-child(16) { animation-delay: 3.06s; }
-.fade-text .letter:nth-child(15) { animation-delay: 3.14s; }
-.fade-text .letter:nth-child(14) { animation-delay: 3.22s; }
-.fade-text .letter:nth-child(13) { animation-delay: 3.30s; }
-.fade-text .letter:nth-child(12) { animation-delay: 3.38s; }
-.fade-text .letter:nth-child(11) { animation-delay: 3.46s; }
-.fade-text .letter:nth-child(10) { animation-delay: 3.54s; }
-.fade-text .letter:nth-child(9) { animation-delay: 3.62s; }
-.fade-text .letter:nth-child(8) { animation-delay: 3.70s; }
-.fade-text .letter:nth-child(7) { animation-delay: 3.78s; }
-.fade-text .letter:nth-child(6) { animation-delay: 3.86s; }
-.fade-text .letter:nth-child(5) { animation-delay: 3.94s; }
-.fade-text .letter:nth-child(4) { animation-delay: 4.02s; }
-.fade-text .letter:nth-child(3) { animation-delay: 4.10s; }
-.fade-text .letter:nth-child(2) { animation-delay: 4.18s; }
-.fade-text .letter:nth-child(1) { animation-delay: 4.26s; }
+.fade-text .letter:nth-child(22) { animation-delay: 2.587s; }
+.fade-text .letter:nth-child(21) { animation-delay: 2.674s; }
+.fade-text .letter:nth-child(20) { animation-delay: 2.761s; }
+.fade-text .letter:nth-child(19) { animation-delay: 2.848s; }
+.fade-text .letter:nth-child(18) { animation-delay: 2.935s; }
+.fade-text .letter:nth-child(17) { animation-delay: 3.022s; }
+.fade-text .letter:nth-child(16) { animation-delay: 3.109s; }
+.fade-text .letter:nth-child(15) { animation-delay: 3.196s; }
+.fade-text .letter:nth-child(14) { animation-delay: 3.283s; }
+.fade-text .letter:nth-child(13) { animation-delay: 3.370s; }
+.fade-text .letter:nth-child(12) { animation-delay: 3.457s; }
+.fade-text .letter:nth-child(11) { animation-delay: 3.544s; }
+.fade-text .letter:nth-child(10) { animation-delay: 3.631s; }
+.fade-text .letter:nth-child(9) { animation-delay: 3.718s; }
+.fade-text .letter:nth-child(8) { animation-delay: 3.805s; }
+.fade-text .letter:nth-child(7) { animation-delay: 3.892s; }
+.fade-text .letter:nth-child(6) { animation-delay: 3.979s; }
+.fade-text .letter:nth-child(5) { animation-delay: 4.066s; }
+.fade-text .letter:nth-child(4) { animation-delay: 4.153s; }
+.fade-text .letter:nth-child(3) { animation-delay: 4.240s; }
+.fade-text .letter:nth-child(2) { animation-delay: 4.327s; }
+.fade-text .letter:nth-child(1) { animation-delay: 4.414s; }
 
 .hero-title .accent {
   color: #ef5350;
