@@ -74,41 +74,62 @@
   align-items: center;
 }
 
+/* Linia z tytułem i menu */
+.hero-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  width: 100%;
+}
+
 .hero-title {
   font-weight: 900;
   white-space: nowrap;
-  margin-bottom: 1rem;
+  margin: 0;
   color: white;
   font-size: 3vw;
   animation: growToFull 1.5s ease-out 0.3s forwards;
-  text-align: center;
+  display: inline-flex;
+  align-items: baseline;
 }
 
 @keyframes growToFull {
   from { font-size: 3vw; }
-  to { font-size: 7.5vw; }
+  to { font-size: 5vw; }
 }
 
-/* iABIM - płynnie jedzie na środek */
+/* iABIM - zostaje na miejscu */
 .hero-title .accent {
-  display: inline-block;
-  animation: slideToCenter 2s ease-in-out 2.5s forwards;
-  position: relative;
-  left: 0;
+  display: inline;
 }
 
-@keyframes slideToCenter {
-  to { left: 50%; transform: translateX(-50%); }
-}
-
-/* Kontener na znikające litery - ukryj na stałe po animacji */
+/* Kontener na znikające litery - ukryj PERMANENTNIE po animacji */
 .fade-text {
   display: inline;
-  animation: hideForever 0.01s steps(1) 4.5s forwards;
 }
 
-@keyframes hideForever {
-  to { visibility: hidden; display: none; }
+.fade-text.hidden {
+  visibility: hidden !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Litery znikają natychmiast + po ostatniej ukryj cały kontener */
+.fade-text .letter {
+  display: inline-block;
+  animation: letterSnap 0.01s steps(1) forwards;
+}
+
+.fade-text .letter:first-child {
+  animation: letterSnapAndHide 0.01s steps(1) 4.414s forwards;
+}
+
+@keyframes letterSnap {
+  to { opacity: 0; }
+}
+
+@keyframes letterSnapAndHide {
+  to { opacity: 0; }
 }
 
 /* Litery znikają natychmiast (steps(1) = skok) */
@@ -146,11 +167,12 @@
 .fade-text .letter:nth-child(2) { animation-delay: 4.327s; }
 .fade-text .letter:nth-child(1) { animation-delay: 4.414s; }
 
-/* === MENU POD iABIM === */
+/* === MENU INLINE Z iABIM === */
 .hero-menu {
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  letter-spacing: 0.1em;
+  display: inline;
+  font-size: 0.4em;
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
 }
 
 .hero-menu a {
@@ -164,10 +186,11 @@
 }
 
 .hero-menu .menu-sep {
-  margin: 0 0.8rem;
+  margin: 0 0.3em;
   color: rgba(255,255,255,0.4);
   opacity: 0;
   animation: letterAppear 0.01s steps(1) forwards;
+  font-weight: 300;
 }
 
 /* Litery menu - ukryte na start, pojawiają się od lewej */
