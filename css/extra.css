@@ -51,6 +51,7 @@
 /* --- Hero Section Full Screen --- */
 .hero-fullscreen {
   min-height: 100vh;
+  margin-top: -1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
