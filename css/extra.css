@@ -240,7 +240,7 @@
 }
 
 .feature-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.1);
   border-color: #ef5350;
 }
@@ -301,7 +301,7 @@
 }
 
 .portfolio-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 }
 
