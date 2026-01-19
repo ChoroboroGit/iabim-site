@@ -405,6 +405,7 @@
 }
 
 .gallery-item figcaption {
+  font-style: normal;
   position: absolute;
   bottom: 0;
   left: 0;
