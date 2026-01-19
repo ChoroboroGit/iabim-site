@@ -154,9 +154,7 @@
   .hero-title {
     white-space: normal;
     font-size: 9vw;
-    transform: scale(0);
-    opacity: 0;
-    animation: growFromNothing 1.5s ease-out 0.3s forwards;
+    animation: growFromNothing 1.5s ease-out 0.3s both;
   }
 
   @keyframes growFromNothing {
