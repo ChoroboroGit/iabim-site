@@ -67,8 +67,8 @@
 
 .hero-title {
   font-size: 15rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
+  font-weight: 1000;
+  margin-bottom: 1rem;
   color: white;
   opacity: 0;
   transform: translateY(-20px);
