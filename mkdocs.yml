@@ -40,7 +40,7 @@ markdown_extensions:
 nav:
   - Start: index.md
   - O nas: o-nas.md
-  - Usługi: uslugi.md
+  - Oferta: oferta.md
   - Portfolio: portfolio.md
   - Kontakt: kontakt.md
 

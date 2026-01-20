@@ -28,6 +28,10 @@ stage: "Koncepcja"
     <strong>Lokalizacja</strong>
     <span>Kraków, Kazimierz</span>
   </div>
+  <div class="meta-item">
+    <strong>Realizacja</strong>
+    <span>2021</span>
+  </div>
 </div>
 
 ---

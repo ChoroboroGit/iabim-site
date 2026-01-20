@@ -28,6 +28,10 @@ stage: "Realizacja"
     <strong>Lokalizacja</strong>
     <span>Legnica</span>
   </div>
+  <div class="meta-item">
+    <strong>Realizacja</strong>
+    <span>2019</span>
+  </div>
 </div>
 
 ---

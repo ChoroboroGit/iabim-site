@@ -28,6 +28,10 @@ stage: "Realizacja"
     <strong>Lokalizacja</strong>
     <span>Stoczek</span>
   </div>
+  <div class="meta-item">
+    <strong>Realizacja</strong>
+    <span>2023</span>
+  </div>
 </div>
 
 ---

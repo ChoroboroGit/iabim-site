@@ -4,16 +4,22 @@ hide:
   - toc
 ---
 
-<!-- Hero Section -->
-<div class="hero-section">
+<!-- Hero Section - Full Screen -->
+<div class="hero-fullscreen">
   <div class="hero-content">
-    <h1>Industry Architecture <span class="accent">iABIM</span></h1>
-    <p class="hero-subtitle">Dokumentacja BIM dla branży budowlanej</p>
-    <p class="hero-description">Revit &bull; IFC &bull; ISO 19650 &bull; Automatyzacja Python/pyRevit</p>
+    <h1 class="hero-title"><span class="accent">iABIM</span> — Industry Architecture</h1>
+    <div class="hero-taglines">
+      <p class="tagline tagline-1">Precyzyjna dokumentacja</p>
+      <p class="tagline tagline-2">Spójny model</p>
+      <p class="tagline tagline-3">Kontrola procesu</p>
+    </div>
     <div class="hero-buttons">
-      <a href="uslugi/" class="btn btn-primary">Nasze usługi</a>
+      <a href="uslugi/" class="btn btn-primary">Oferta</a>
+      <a href="o-nas/" class="btn btn-secondary">O nas</a>
+      <a href="portfolio/" class="btn btn-secondary">Portfolio</a>
       <a href="kontakt/" class="btn btn-secondary">Kontakt</a>
     </div>
+
   </div>
 </div>
 
@@ -54,7 +60,7 @@ hide:
 {{ portfolio_karty_index() }}
 
 <p style="text-align: center; margin-top: 1.5rem;">
-  <a href="portfolio/" class="btn btn-outline">Zobacz całe portfolio</a>
+  <a href="portfolio/" class="btn btn-outline">Więcej</a>
 </p>
 
 ---

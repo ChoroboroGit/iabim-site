@@ -28,6 +28,10 @@ stage: "Realizacja"
     <strong>Lokalizacja</strong>
     <span>Skała, woj. małopolskie</span>
   </div>
+  <div class="meta-item">
+    <strong>Realizacja</strong>
+    <span>2021</span>
+  </div>
 </div>
 
 ---

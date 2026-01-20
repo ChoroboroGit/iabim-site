@@ -28,6 +28,10 @@ stage: "Projekt budowlany / Wykonawczy"
     <strong>Lokalizacja</strong>
     <span>Kraków</span>
   </div>
+  <div class="meta-item">
+    <strong>Realizacja</strong>
+    <span>2020</span>
+  </div>
 </div>
 
 ---
