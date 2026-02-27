@@ -44,10 +44,9 @@ markdown_extensions:
 
 nav:
   - Start: index.md
-  - O nas: o-nas.md
-  - Oferta: oferta.md
+  - Oferta: index.md#oferta
   - Portfolio: portfolio.md
-  - Kontakt: kontakt.md
+  - O nas: index.md#onas
 
 extra:
   social:
