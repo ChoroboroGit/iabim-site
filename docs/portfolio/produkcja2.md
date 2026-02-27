@@ -32,7 +32,7 @@ stage: "Realizacja"
   </div>
   <div class="meta-item">
     <strong>Realizacja</strong>
-    <span>2021</span>
+    <span>2016</span>
   </div>
 </div>
 
