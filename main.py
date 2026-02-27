@@ -184,15 +184,16 @@ def _generuj_podstrony(project_dir):
             zespol = row.get('zespol_autorski', '')
             zespol_html = f"\n\n**Zespół autorski:** {zespol}\n" if zespol else ""
 
-            # Generuj galerię z pozostałych obrazków
+            # Generuj galerię (hero + pozostałe obrazki)
             gallery_html = ""
-            if gallery_images:
+            all_images = [hero_image] + gallery_images if hero_image else gallery_images
+            if all_images:
                 gallery_html = '\n\n## Galeria\n\n<div class="gallery">\n'
-                for img in gallery_images:
+                for img in all_images:
                     img_name = img.stem.replace('_', ' ').replace('-', ' ').title()
                     img_path = f"../../img/portfolio/{slug}/{img.name}"
                     gallery_html += f'''  <figure class="gallery-item">
-    <a href="{img_path}" target="_blank">
+    <a href="{img_path}" class="glightbox" data-gallery="portfolio-{slug}">
       <img src="{img_path}" alt="{img_name}">
       <figcaption>{img_name}</figcaption>
     </a>
@@ -210,7 +211,9 @@ stage: "{row['stadium']}"
 # {row['nazwa']}
 
 <div class="project-hero">
-  <img src="{hero_path}" alt="{row['nazwa']}">
+  <a href="{hero_path}" class="glightbox" data-gallery="portfolio-{slug}">
+    <img src="{hero_path}" alt="{row['nazwa']}">
+  </a>
 </div>
 
 <div class="project-meta">

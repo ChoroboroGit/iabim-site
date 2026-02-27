@@ -8,7 +8,9 @@ stage: "Realizacja"
 # Dom jednorodzinny Skała
 
 <div class="project-hero">
-  <img src="../../img/portfolio/dom-skala/01_hero.jpg" alt="Dom jednorodzinny Skała">
+  <a href="../../img/portfolio/dom-skala/01_hero.jpg" class="glightbox" data-gallery="portfolio-dom-skala">
+    <img src="../../img/portfolio/dom-skala/01_hero.jpg" alt="Dom jednorodzinny Skała">
+  </a>
 </div>
 
 <div class="project-meta">
@@ -46,6 +48,17 @@ Nowoczesny dom jednorodzinny zaprojektowany dla rodziny 4-osobowej. Charakteryst
 - Projekt wykonawczy
 - Wizualizacje 3D
 
+
+## Galeria
+
+<div class="gallery">
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/dom-skala/01_hero.jpg" class="glightbox" data-gallery="portfolio-dom-skala">
+      <img src="../../img/portfolio/dom-skala/01_hero.jpg" alt="01 Hero">
+      <figcaption>01 Hero</figcaption>
+    </a>
+  </figure>
+</div>
 
 ---
 

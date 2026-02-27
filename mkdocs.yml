@@ -22,6 +22,11 @@ theme:
 
 extra_css:
   - css/extra.css
+  - https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js
+  - js/lightbox.js
 
 plugins:
   - search

@@ -8,7 +8,9 @@ stage: "Projekt budowlany / Wykonawczy"
 # Budynek produkcyjny
 
 <div class="project-hero">
-  <img src="../../img/portfolio/produkcja4/01.jpg" alt="Budynek produkcyjny">
+  <a href="../../img/portfolio/produkcja4/01.jpg" class="glightbox" data-gallery="portfolio-produkcja4">
+    <img src="../../img/portfolio/produkcja4/01.jpg" alt="Budynek produkcyjny">
+  </a>
 </div>
 
 <div class="project-meta">
@@ -51,19 +53,25 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
 
 <div class="gallery">
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja4/02.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja4/01.jpg" class="glightbox" data-gallery="portfolio-produkcja4">
+      <img src="../../img/portfolio/produkcja4/01.jpg" alt="01">
+      <figcaption>01</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja4/02.jpg" class="glightbox" data-gallery="portfolio-produkcja4">
       <img src="../../img/portfolio/produkcja4/02.jpg" alt="02">
       <figcaption>02</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja4/03.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja4/03.jpg" class="glightbox" data-gallery="portfolio-produkcja4">
       <img src="../../img/portfolio/produkcja4/03.jpg" alt="03">
       <figcaption>03</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja4/04.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja4/04.jpg" class="glightbox" data-gallery="portfolio-produkcja4">
       <img src="../../img/portfolio/produkcja4/04.jpg" alt="04">
       <figcaption>04</figcaption>
     </a>

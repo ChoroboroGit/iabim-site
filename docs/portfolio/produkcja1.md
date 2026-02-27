@@ -8,7 +8,9 @@ stage: "Realizacja"
 # Budynek produkcyjny
 
 <div class="project-hero">
-  <img src="../../img/portfolio/produkcja1/CFF_001.jpg" alt="Budynek produkcyjny">
+  <a href="../../img/portfolio/produkcja1/CFF_001.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
+    <img src="../../img/portfolio/produkcja1/CFF_001.jpg" alt="Budynek produkcyjny">
+  </a>
 </div>
 
 <div class="project-meta">
@@ -51,49 +53,55 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
 
 <div class="gallery">
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_002.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_001.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
+      <img src="../../img/portfolio/produkcja1/CFF_001.jpg" alt="Cff 001">
+      <figcaption>Cff 001</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja1/CFF_002.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_002.jpg" alt="Cff 002">
       <figcaption>Cff 002</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_003.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_003.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_003.jpg" alt="Cff 003">
       <figcaption>Cff 003</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_003_000.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_003_000.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_003_000.jpg" alt="Cff 003 000">
       <figcaption>Cff 003 000</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_004.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_004.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_004.jpg" alt="Cff 004">
       <figcaption>Cff 004</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_005.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_005.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_005.jpg" alt="Cff 005">
       <figcaption>Cff 005</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_006.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_006.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_006.jpg" alt="Cff 006">
       <figcaption>Cff 006</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_007.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_007.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_007.jpg" alt="Cff 007">
       <figcaption>Cff 007</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_008.jpg" target="_blank">
+    <a href="../../img/portfolio/produkcja1/CFF_008.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_008.jpg" alt="Cff 008">
       <figcaption>Cff 008</figcaption>
     </a>
