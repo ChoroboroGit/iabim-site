@@ -69,6 +69,18 @@ Projekt rewitalizacji historycznego podwórka na krakowskim Kazimierzu. Koncepcj
     </a>
   </figure>
   <figure class="gallery-item">
+    <a href="../../img/portfolio/slubice/FINALNE_2 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slubice/FINALNE_2 - Zdjęcie.jpg" alt="Finalne 2   Zdjęcie">
+      <figcaption>Finalne 2   Zdjęcie</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/slubice/FINALNE_3 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slubice/FINALNE_3 - Zdjęcie.jpg" alt="Finalne 3   Zdjęcie">
+      <figcaption>Finalne 3   Zdjęcie</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
     <a href="../../img/portfolio/slubice/Maciej-Kurowicki-o-Evorevo-na-Openerze-PODCAST-main-5d231905d5617.png" target="_blank">
       <img src="../../img/portfolio/slubice/Maciej-Kurowicki-o-Evorevo-na-Openerze-PODCAST-main-5d231905d5617.png" alt="Maciej Kurowicki O Evorevo Na Openerze Podcast Main 5D231905D5617">
       <figcaption>Maciej Kurowicki O Evorevo Na Openerze Podcast Main 5D231905D5617</figcaption>

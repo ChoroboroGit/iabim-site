@@ -8,7 +8,7 @@ stage: "Realizacja"
 # Slavita Park
 
 <div class="project-hero">
-  <img src="../../img/placeholder.png" alt="Slavita Park">
+  <img src="../../img/portfolio/slavitapark1/FINALNE_1 - Photo.jpg" alt="Slavita Park">
 </div>
 
 <div class="project-meta">
@@ -44,6 +44,41 @@ Wielofunkcyjny budynek usługowy zlokalizowany w centrum Krakowa. Projekt obejmu
 
 - Model architektoniczny LOD351
 
+
+## Galeria
+
+<div class="gallery">
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/slavitapark1/FINALNE_2 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slavitapark1/FINALNE_2 - Zdjęcie.jpg" alt="Finalne 2   Zdjęcie">
+      <figcaption>Finalne 2   Zdjęcie</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/slavitapark1/FINALNE_3 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slavitapark1/FINALNE_3 - Zdjęcie.jpg" alt="Finalne 3   Zdjęcie">
+      <figcaption>Finalne 3   Zdjęcie</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/slavitapark1/FINALNE_4 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slavitapark1/FINALNE_4 - Zdjęcie.jpg" alt="Finalne 4   Zdjęcie">
+      <figcaption>Finalne 4   Zdjęcie</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/slavitapark1/FINALNE_5 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slavitapark1/FINALNE_5 - Zdjęcie.jpg" alt="Finalne 5   Zdjęcie">
+      <figcaption>Finalne 5   Zdjęcie</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/slavitapark1/FINALNE_6 - Zdjęcie.jpg" target="_blank">
+      <img src="../../img/portfolio/slavitapark1/FINALNE_6 - Zdjęcie.jpg" alt="Finalne 6   Zdjęcie">
+      <figcaption>Finalne 6   Zdjęcie</figcaption>
+    </a>
+  </figure>
+</div>
 
 ---
 

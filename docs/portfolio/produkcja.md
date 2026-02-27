@@ -8,7 +8,7 @@ stage: "Realizacja"
 # Budynek produkcyjny
 
 <div class="project-hero">
-  <img src="../../img/portfolio/produkcja/01_hero.jpg" alt="Budynek produkcyjny">
+  <img src="../../img/portfolio/produkcja/1A_DSC_1359lrg.jpg" alt="Budynek produkcyjny">
 </div>
 
 <div class="project-meta">
@@ -46,6 +46,71 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
 - Koordynacja branżowa
 - Dokumentacja powykonawcza
 
+
+## Galeria
+
+<div class="gallery">
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DJI_20260116102050_0012_D.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DJI_20260116102050_0012_D.jpg" alt="Dji 20260116102050 0012 D">
+      <figcaption>Dji 20260116102050 0012 D</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DJI_20260116102126_0013_D.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DJI_20260116102126_0013_D.jpg" alt="Dji 20260116102126 0013 D">
+      <figcaption>Dji 20260116102126 0013 D</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DJI_20260116102151_0014_D.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DJI_20260116102151_0014_D.jpg" alt="Dji 20260116102151 0014 D">
+      <figcaption>Dji 20260116102151 0014 D</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DJI_20260116102215_0015_D.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DJI_20260116102215_0015_D.jpg" alt="Dji 20260116102215 0015 D">
+      <figcaption>Dji 20260116102215 0015 D</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DSC_1040lrg.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DSC_1040lrg.jpg" alt="Dsc 1040Lrg">
+      <figcaption>Dsc 1040Lrg</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DSC_1050lrg.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DSC_1050lrg.jpg" alt="Dsc 1050Lrg">
+      <figcaption>Dsc 1050Lrg</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DSC_1192lrg.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DSC_1192lrg.jpg" alt="Dsc 1192Lrg">
+      <figcaption>Dsc 1192Lrg</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DSC_1207lrg.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DSC_1207lrg.jpg" alt="Dsc 1207Lrg">
+      <figcaption>Dsc 1207Lrg</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DSC_1294lrg.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DSC_1294lrg.jpg" alt="Dsc 1294Lrg">
+      <figcaption>Dsc 1294Lrg</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja/DSC_1364lrg.jpg" target="_blank">
+      <img src="../../img/portfolio/produkcja/DSC_1364lrg.jpg" alt="Dsc 1364Lrg">
+      <figcaption>Dsc 1364Lrg</figcaption>
+    </a>
+  </figure>
+</div>
 
 ---
 
