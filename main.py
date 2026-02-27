@@ -119,6 +119,22 @@ def _pobierz_obrazki(img_portfolio_dir, slug, kompresuj=True):
 
     return gallery, hero
 
+def _wyczysc_sieroty(portfolio_dir, img_portfolio_dir, slugs_z_csv):
+    """Usuń pliki MD i foldery obrazków bez wpisu w CSV"""
+    # Usuń osierocone pliki MD
+    for md_file in portfolio_dir.glob("*.md"):
+        slug = md_file.stem
+        if slug not in slugs_z_csv:
+            md_file.unlink()
+            print(f"[macros] Usunięto sierotę: {md_file.name}")
+
+    # Usuń puste foldery obrazków
+    for img_dir in img_portfolio_dir.iterdir():
+        if img_dir.is_dir() and img_dir.name not in slugs_z_csv:
+            if not any(img_dir.iterdir()):  # pusty folder
+                img_dir.rmdir()
+                print(f"[macros] Usunięto pusty folder: {img_dir.name}")
+
 def _generuj_podstrony(project_dir):
     """Automatycznie generuj/aktualizuj podstrony projektów z CSV"""
     docs_dir = Path(project_dir) / "docs"
@@ -131,11 +147,13 @@ def _generuj_podstrony(project_dir):
 
     portfolio_dir.mkdir(exist_ok=True)
 
+    slugs_z_csv = set()
     with open(csv_path, encoding='utf-8-sig') as f:
         reader = csv.DictReader(f, delimiter=';')
         for row in reader:
             link = row['link'].strip('/')
             slug = link.replace('portfolio/', '')
+            slugs_z_csv.add(slug)
             md_path = portfolio_dir / f"{slug}.md"
 
             # Utwórz folder na obrazki jeśli nie istnieje
@@ -238,6 +256,9 @@ stage: "{row['stadium']}"
                     continue  # Bez zmian, nie zapisuj
             md_path.write_text(content, encoding='utf-8')
             print(f"[macros] Zaktualizowano: {md_path.name}")
+
+    # Wyczyść sieroty (pliki bez wpisu w CSV)
+    _wyczysc_sieroty(portfolio_dir, img_portfolio_dir, slugs_z_csv)
 
 def define_env(env):
     """Define variables and macros for MkDocs"""
