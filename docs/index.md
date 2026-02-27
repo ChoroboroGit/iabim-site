@@ -14,7 +14,7 @@ hide:
       <p class="tagline tagline-3">Kontrola procesu</p>
     </div>
     <div class="hero-buttons">
-      <a href="uslugi/" class="btn btn-primary">Oferta</a>
+      <a href="oferta/" class="btn btn-primary">Oferta</a>
       <a href="o-nas/" class="btn btn-secondary">O nas</a>
       <a href="portfolio/" class="btn btn-secondary">Portfolio</a>
       <a href="kontakt/" class="btn btn-secondary">Kontakt</a>

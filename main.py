@@ -180,6 +180,10 @@ def _generuj_podstrony(project_dir):
             else:
                 zakres_html = "- Model architektoniczny\n- Dokumentacja wykonawcza\n- Koordynacja międzybranżowa"
 
+            # Zespół autorski
+            zespol = row.get('zespol_autorski', '')
+            zespol_html = f"\n\n**Zespół autorski:** {zespol}\n" if zespol else ""
+
             # Generuj galerię z pozostałych obrazków
             gallery_html = ""
             if gallery_images:
@@ -237,7 +241,7 @@ stage: "{row['stadium']}"
 ## O projekcie
 
 {opis_pelny}
-
+{zespol_html}
 ## Zakres prac BIM
 
 {zakres_html}
