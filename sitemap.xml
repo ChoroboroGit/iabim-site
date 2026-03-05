@@ -61,7 +61,15 @@
          <lastmod>2026-03-05</lastmod>
     </url>
     <url>
+         <loc>https://iabim.eu/wiedza/ifc-eksport-revit/</loc>
+         <lastmod>2026-03-05</lastmod>
+    </url>
+    <url>
          <loc>https://iabim.eu/wiedza/koordynacja-branzowa/</loc>
+         <lastmod>2026-03-05</lastmod>
+    </url>
+    <url>
+         <loc>https://iabim.eu/wiedza/koordynacja-mep-hale/</loc>
          <lastmod>2026-03-05</lastmod>
     </url>
     <url>
@@ -86,6 +94,10 @@
     </url>
     <url>
          <loc>https://iabim.eu/wiedza/transport-wewnetrzny/</loc>
+         <lastmod>2026-03-05</lastmod>
+    </url>
+    <url>
+         <loc>https://iabim.eu/wiedza/wentylacja-hale-przemyslowe/</loc>
          <lastmod>2026-03-05</lastmod>
     </url>
 </urlset>
