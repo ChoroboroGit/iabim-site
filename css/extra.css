@@ -768,13 +768,13 @@ html {
 
 .kategoria-link {
   display: inline-block;
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.5rem;
   background: var(--md-default-bg-color);
   border: 1px solid var(--md-primary-fg-color);
-  border-radius: 15px;
+  border-radius: 12px;
   color: var(--md-primary-fg-color);
   text-decoration: none;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 500;
   transition: all 0.2s;
   cursor: pointer;
