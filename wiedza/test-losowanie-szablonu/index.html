@@ -358,11 +358,8 @@
 <h2 id="jak-to-zrobic">Jak to zrobić?</h2>
 <p>[Przedstaw instrukcję krok po kroku]</p>
 <h3 id="schemat-dziaania">Schemat działania</h3>
-<div class="mermaid">flowchart TD
-    P[PRZYGOTOWANIE] --&gt; W[WYKONANIE]
-    W --&gt; S{SPRAWDZENIE}
-    S --&gt;|OK| K[KONIEC]
-    S --&gt;|BŁĄD| W</div>
+<div class="mermaid">flowchart LR
+    START([START]) --&gt; K1[KROK 1] --&gt; K2[KROK 2] --&gt; K3[KROK 3] --&gt; KONIEC([KONIEC])</div>
 <h3 id="krok-1-nazwa">Krok 1: [Nazwa]</h3>
 <p>[Opis kroku]</p>
 <h3 id="krok-2-nazwa">Krok 2: [Nazwa]</h3>
