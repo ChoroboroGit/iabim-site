@@ -1,15 +1,19 @@
-// Mermaid init
+// Mermaid init - styl jak info/definicja
 mermaid.initialize({
     startOnLoad: false,
     theme: 'base',
     themeVariables: {
-        primaryColor: '#448aff',
-        primaryBorderColor: '#2962ff',
-        primaryTextColor: '#ffffff',
-        lineColor: '#448aff',
-        arrowheadColor: '#448aff',
-        background: 'transparent',
-        mainBkg: 'transparent'
+        primaryColor: '#e1f5fe',
+        primaryBorderColor: '#00b8d4',
+        primaryTextColor: '#01579b',
+        lineColor: '#00b8d4',
+        arrowheadColor: '#00b8d4',
+        nodeBorderRadius: '4px'
+    },
+    flowchart: {
+        nodeSpacing: 50,
+        rankSpacing: 50,
+        curve: 'basis'
     }
 });
 
