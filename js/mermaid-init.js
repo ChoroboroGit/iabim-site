@@ -1,5 +1,17 @@
-// Mermaid init - prosty
-mermaid.initialize({ startOnLoad: false, theme: 'default' });
+// Mermaid init
+mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+        primaryColor: '#448aff',
+        primaryBorderColor: '#2962ff',
+        primaryTextColor: '#ffffff',
+        lineColor: '#448aff',
+        arrowheadColor: '#448aff',
+        background: 'transparent',
+        mainBkg: 'transparent'
+    }
+});
 
 window.addEventListener('load', function() {
     document.querySelectorAll('.mermaid').forEach(function(el) {
