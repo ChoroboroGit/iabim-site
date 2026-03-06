@@ -359,11 +359,9 @@
 <p>[Przedstaw instrukcję krok po kroku]</p>
 <h3 id="schemat-dziaania">Schemat działania</h3>
 <div class="mermaid">flowchart LR
-    S[START] --&gt; D{DECYZJA}
-    D --&gt;|Opcja A| A[ŚCIEŻKA A]
-    D --&gt;|Opcja B| B[ŚCIEŻKA B]
-    A --&gt; K[KONIEC]
-    B --&gt; K</div>
+    P[PRZYGOTOWANIE] --&gt; W[WYKONANIE] --&gt; S{SPRAWDZENIE}
+    S --&gt;|OK| K[KONIEC]
+    S --&gt;|BŁĄD| W</div>
 <h3 id="krok-1-nazwa">Krok 1: [Nazwa]</h3>
 <p>[Opis kroku]</p>
 <h3 id="krok-2-nazwa">Krok 2: [Nazwa]</h3>
@@ -382,6 +380,11 @@
 <p class="admonition-title">Uwaga</p>
 <p>[Najważniejsze ostrzeżenie lub wskazówka]</p>
 </div>
+<!-- ZDJĘCIA - odkomentuj i użyj gdzie potrzebujesz w artykule -->
+<!-- ![Opis zdjęcia](../img/wiedza/test-losowanie-szablonu/01.jpg) -->
+<!-- ![Opis zdjęcia](../img/wiedza/test-losowanie-szablonu/02.jpg) -->
+<!-- ![Opis zdjęcia](../img/wiedza/test-losowanie-szablonu/03.jpg) -->
+
 <hr />
 <p style="text-align: center; margin-top: 2rem;">
   <a href="../" class="btn btn-outline">Powrót do centrum wiedzy</a>
