@@ -336,9 +336,16 @@
 <h1 id="portfolio">Portfolio</h1>
 <p>Wybrane realizacje z zakresu dokumentacji BIM, koordynacji i automatyzacji.</p>
 <hr />
+<nav class="kategorie-nav portfolio-filter">
+  <button class="kategoria-link active" data-filter="all">Wszystkie</button>
+  <button class="kategoria-link" data-filter="budynek-handlowy">Budynek handlowy</button>
+  <button class="kategoria-link" data-filter="budynek-produkcyjny">Budynek produkcyjny</button>
+  <button class="kategoria-link" data-filter="budynek-wielorodzinny">Budynek wielorodzinny</button>
+</nav>
+
 <div class="portfolio-preview" id="portfolio-grid">
 
-  <a class="portfolio-card" href="produkcja3/">
+  <a class="portfolio-card" href="produkcja3/" data-typ="budynek-produkcyjny">
     <img src="../img/portfolio/produkcja3/1.jpg" alt="Budynek produkcyjny">
     <div class="portfolio-info">
       <h4>Budynek produkcyjny</h4>
@@ -348,7 +355,7 @@
     </div>
   </a>
 
-  <a class="portfolio-card" href="produkcja1/">
+  <a class="portfolio-card" href="produkcja1/" data-typ="budynek-produkcyjny">
     <img src="../img/portfolio/produkcja1/CFF_001.jpg" alt="Budynek produkcyjny">
     <div class="portfolio-info">
       <h4>Budynek produkcyjny</h4>
@@ -358,7 +365,7 @@
     </div>
   </a>
 
-  <a class="portfolio-card" href="produkcja2/">
+  <a class="portfolio-card" href="produkcja2/" data-typ="budynek-produkcyjny">
     <img src="../img/portfolio/produkcja2/000_89f1al4lgzyrcd6o2.jpg" alt="Budynek produkcyjny">
     <div class="portfolio-info">
       <h4>Budynek produkcyjny</h4>
@@ -368,7 +375,7 @@
     </div>
   </a>
 
-  <a class="portfolio-card" href="produkcja4/">
+  <a class="portfolio-card" href="produkcja4/" data-typ="budynek-produkcyjny">
     <img src="../img/portfolio/produkcja4/01.jpg" alt="Budynek produkcyjny">
     <div class="portfolio-info">
       <h4>Budynek produkcyjny</h4>
@@ -378,7 +385,7 @@
     </div>
   </a>
 
-  <a class="portfolio-card" href="slavitapark1">
+  <a class="portfolio-card" href="slavitapark1" data-typ="budynek-wielorodzinny">
     <img src="../img/portfolio/slavitapark1/1.jpg" alt="Slavita Park">
     <div class="portfolio-info">
       <h4>Slavita Park</h4>
@@ -388,7 +395,7 @@
     </div>
   </a>
 
-  <a class="portfolio-card" href="produkcja/">
+  <a class="portfolio-card" href="produkcja/" data-typ="budynek-produkcyjny">
     <img src="../img/portfolio/produkcja/1A_DSC_1359lrg.jpg" alt="Budynek produkcyjny">
     <div class="portfolio-info">
       <h4>Budynek produkcyjny</h4>
@@ -398,7 +405,7 @@
     </div>
   </a>
 
-  <a class="portfolio-card" href="slubice/">
+  <a class="portfolio-card" href="slubice/" data-typ="budynek-handlowy">
     <img src="../img/portfolio/slubice/1.jpg" alt="RetailPark">
     <div class="portfolio-info">
       <h4>RetailPark</h4>
