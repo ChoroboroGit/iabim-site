@@ -27,6 +27,9 @@ extra_css:
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js
   - js/lightbox.js?v=5
+  - js/wiedza-filter.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - js/mermaid-init.js
 
 plugins:
   - search
@@ -35,7 +38,11 @@ plugins:
 markdown_extensions:
   - attr_list
   - md_in_html
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
   - pymdownx.emoji
   - pymdownx.tabbed
   - admonition
@@ -43,10 +50,10 @@ markdown_extensions:
   - tables
 
 nav:
-  - Start: index.md
-  - Oferta: index.md#oferta
+  - Centrum wiedzy: wiedza.md
+  - Oferta: /#oferta
   - Portfolio: portfolio.md
-  - O nas: index.md#onas
+  - O nas: /#onas
 
 extra:
   social:

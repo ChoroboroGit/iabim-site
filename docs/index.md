@@ -16,6 +16,7 @@ hide:
     <div class="hero-buttons">
       <a href="#oferta" class="btn btn-primary">Oferta</a>
       <a href="#portfolio" class="btn btn-secondary">Portfolio</a>
+      <a href="#wiedza" class="btn btn-secondary">Wiedza</a>
       <a href="#onas" class="btn btn-secondary">O nas</a>
     </div>
   </div>
@@ -27,77 +28,33 @@ hide:
 
 ## Oferta
 
-<div class="onas-desktop">
-
-<div class="service-section">
-  <div class="service-content">
+<div class="features-grid">
+  <div class="feature-card">
+    <div class="feature-icon">&#128204;</div>
     <h3>Dokumentacja BIM</h3>
-    <p><strong>Arkusze, zestawienia, detale. LOD/LOI wg wymagan.</strong></p>
-    <ul>
-      <li>Komplet rysunkow wykonawczych wg standardu biura/inwestora.</li>
-      <li>Zestawienia wskazanych elementow z kontrola spojnosci parametrow.</li>
-      <li>Detale i widoki pomocnicze wg preferencji projektanta.</li>
-      <li>LOD/LOI zgodne z wytycznymi kontraktu.</li>
-      <li>Formaty: RVT, IFC, DWG, DXF, XLS, DOCX, PDF/A.</li>
-    </ul>
+    <p>Arkusze, zestawienia, detale. LOD/LOI wg wymagań kontraktu. Formaty: RVT, IFC, DWG, PDF/A.</p>
   </div>
-  <div class="service-image">
-    <img src="img/_uslugi/image_1.jpg" alt="Dokumentacja BIM">
-  </div>
-</div>
 
-<div class="service-section reverse">
-  <div class="service-content">
+  <div class="feature-card">
+    <div class="feature-icon">&#128269;</div>
     <h3>Koordynacja kolizji</h3>
-    <p><strong>Reguly, iteracje, raporty KPI. Navisworks / IFC.</strong></p>
-    <ul>
-      <li>Pakiety koordynacyjne (branze, zakres, tolerancje).</li>
-      <li>Reguly i progi (geometria, przeswity, parametry).</li>
-      <li>Identyfikacja, grupowanie, priorytetyzacja kolizji.</li>
-      <li>Iteracje tygodniowe/sprinterskie, statusy.</li>
-      <li>Wymiana uwag w BCF/BCFzip lub XLSX.</li>
-    </ul>
+    <p>Reguły, iteracje, raporty KPI. Navisworks / IFC. Wymiana uwag w BCF lub XLSX.</p>
   </div>
-  <div class="service-image">
-    <img src="img/_uslugi/image_2.jpg" alt="Koordynacja kolizji">
-  </div>
-</div>
 
-<div class="service-section">
-  <div class="service-content">
+  <div class="feature-card">
+    <div class="feature-icon">&#9881;</div>
     <h3>Automatyzacje Revit</h3>
-    <p><strong>Python / pyRevit / Dynamo - przyspieszam powtarzalne czynnosci.</strong></p>
-    <ul>
-      <li>Generowanie widokow scian pomieszczen z opisem i wymiarowaniem.</li>
-      <li>Uklad widokow na arkuszach kolumnowo wg prefiksow.</li>
-      <li>Porzadkowanie parametrow i nazewnictwa.</li>
-      <li>Krotszy czas publikacji arkuszy i mniej bledow.</li>
-    </ul>
+    <p>Python / pyRevit / Dynamo. Generowanie widoków, układy arkuszy, porządkowanie parametrów.</p>
   </div>
-  <div class="service-image">
-    <img src="img/_uslugi/image_3.jpg" alt="Automatyzacje Revit">
+
+  <div class="feature-card">
+    <div class="feature-icon">&#128200;</div>
+    <h3>Raporty i przepływy</h3>
+    <p>Excel/Word/PDF z danych Revit. Eksporty z logotypami, gotowe do publikacji.</p>
   </div>
 </div>
 
-<div class="service-section reverse">
-  <div class="service-content">
-    <h3>Raporty i przeplywy danych</h3>
-    <p><strong>Excel/Word/PDF z danych Revit i zrodel pomocniczych.</strong></p>
-    <ul>
-      <li>Eksporty do .xlsx z naglowkami projektu i logotypami.</li>
-      <li>Generowanie Word/PDF z szablonow.</li>
-      <li>Przetwarzanie tresci e-mail do PDF/A.</li>
-      <li>Spojne style, gotowe do publikacji.</li>
-    </ul>
-  </div>
-  <div class="service-image">
-    <img src="img/_uslugi/image_4.jpg" alt="Raporty i przeplywy danych">
-  </div>
-</div>
-
-</div>
-
-<div class="onas-mobile">
+<div class="onas-mobile" style="display:none;">
 
 ### Dokumentacja BIM
 
@@ -147,6 +104,22 @@ hide:
 
 <p style="text-align: center; margin-top: 1.5rem;">
   <a href="portfolio/" class="btn btn-outline">Zobacz wszystkie projekty</a>
+</p>
+
+</section>
+
+---
+
+<section id="wiedza">
+
+## Centrum Wiedzy
+
+Ekspercka wiedza o architekturze przemysłowej, halach produkcyjnych i BIM.
+
+{{ wiedza_karty_index() }}
+
+<p style="text-align: center; margin-top: 1.5rem;">
+  <a href="wiedza/" class="btn btn-outline">Zobacz wszystkie artykuły</a>
 </p>
 
 </section>

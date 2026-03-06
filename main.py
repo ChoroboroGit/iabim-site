@@ -135,6 +135,20 @@ def _wyczysc_sieroty(portfolio_dir, img_portfolio_dir, slugs_z_csv):
                 img_dir.rmdir()
                 print(f"[macros] Usunięto pusty folder: {img_dir.name}")
 
+def _kompresuj_obrazki_wiedza(project_dir):
+    """Kompresuj wszystkie obrazki w folderach wiedzy"""
+    img_wiedza_dir = Path(project_dir) / "docs" / "img" / "wiedza"
+    if not img_wiedza_dir.exists():
+        return
+
+    for slug_dir in img_wiedza_dir.iterdir():
+        if not slug_dir.is_dir():
+            continue
+        for img_path in slug_dir.glob("*"):
+            if img_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.webp']:
+                _kompresuj_obrazek(img_path)
+
+
 def _generuj_podstrony(project_dir):
     """Automatycznie generuj/aktualizuj podstrony projektów z CSV"""
     docs_dir = Path(project_dir) / "docs"
@@ -273,6 +287,9 @@ def define_env(env):
     # Generuj/aktualizuj podstrony projektów z CSV przy każdym buildzie
     _generuj_podstrony(env.project_dir)
 
+    # Kompresuj obrazki w folderach wiedzy
+    _kompresuj_obrazki_wiedza(env.project_dir)
+
     docs_dir = Path(env.project_dir) / "docs"
     img_portfolio_dir = docs_dir / "img" / "portfolio"
 
@@ -306,8 +323,9 @@ def define_env(env):
 
         for p in projects:
             link = p['link'].replace('portfolio/', '')
+            typ = p.get('typ', '').replace(' ', '-').lower()
             html += f'''
-  <a class="portfolio-card" href="{link}">
+  <a class="portfolio-card" href="{link}" data-typ="{typ}">
     <img src="../{p['obrazek']}" alt="{p['nazwa']}">
     <div class="portfolio-info">
       <h4>{p['nazwa']}</h4>
@@ -330,6 +348,20 @@ def define_env(env):
         return html
 
     @env.macro
+    def portfolio_typy():
+        """Generuj przyciski filtra typów budynków"""
+        projects = projekty()
+        typy = sorted(set(p.get('typ', '') for p in projects if p.get('typ')))
+
+        html = '<nav class="kategorie-nav portfolio-filter">\n'
+        html += '  <button class="kategoria-link active" data-filter="all">Wszystkie</button>\n'
+        for typ in typy:
+            typ_slug = typ.replace(' ', '-').lower()
+            html += f'  <button class="kategoria-link" data-filter="{typ_slug}">{typ}</button>\n'
+        html += '</nav>\n'
+        return html
+
+    @env.macro
     def portfolio_karty_index():
         """Generuj karty portfolio dla strony głównej"""
         projects = projekty()
@@ -349,3 +381,181 @@ def define_env(env):
 
         html += '</div>'
         return html
+
+    @env.macro
+    def artykuly():
+        """Wczytaj artykuły z pliku CSV"""
+        csv_path = Path(env.project_dir) / "docs" / "artykuly.csv"
+        articles = []
+
+        if csv_path.exists():
+            with open(csv_path, encoding='utf-8-sig') as f:
+                reader = csv.DictReader(f, delimiter=',')
+                for row in reader:
+                    if row.get('status') == 'published':
+                        articles.append(row)
+
+        return articles
+
+    @env.macro
+    def has_hero(slug):
+        """Sprawdź czy artykuł ma hero.jpg"""
+        docs_dir = Path(env.project_dir) / "docs"
+        hero_path = docs_dir / 'img' / 'wiedza' / slug / 'hero.jpg'
+        return hero_path.exists()
+
+    @env.macro
+    def wiedza_hero(slug):
+        """Wyświetl hero jeśli istnieje"""
+        if has_hero(slug):
+            return f'<img src="/img/wiedza/{slug}/hero.jpg" alt="" class="article-hero">'
+        return ''
+
+    @env.macro
+    def wiedza_karty():
+        """Generuj karty artykułów jako HTML"""
+        articles = artykuly()
+
+        if not articles:
+            return '<p class="empty-state">Wkrótce pojawią się artykuły eksperckie.</p>'
+
+        html = '<div class="wiedza-grid" id="wiedza-grid">\n'
+
+        for a in articles:
+            problem = a.get('problem', '')
+            slug = a['slug']
+            hero_img = f'<img src="../img/wiedza/{slug}/hero.jpg" alt="{a["title"]}" class="wiedza-hero">' if has_hero(slug) else ''
+            hero_class = ' has-hero' if has_hero(slug) else ''
+
+            html += f'''
+  <a class="wiedza-card{hero_class}" href="{slug}/" data-problem="{problem}">
+    {hero_img}
+    <div class="wiedza-info">
+      <span class="wiedza-category">{a.get('category', '')}</span>
+      <h3>{a['title']}</h3>
+      <p>{a.get('description', '')}</p>
+    </div>
+  </a>
+'''
+
+        html += '</div>\n'
+        return html
+
+    @env.macro
+    def wiedza_karty_index():
+        """Generuj 3 najnowsze artykuły dla strony głównej"""
+        articles = artykuly()[:3]
+
+        if not articles:
+            return ''
+
+        html = '<div class="wiedza-preview">\n'
+
+        for a in articles:
+            html += f'''
+  <a class="wiedza-card" href="wiedza/{a['slug']}/">
+    <div class="wiedza-info">
+      <h4>{a['title']}</h4>
+      <p>{a.get('description', '')}</p>
+    </div>
+  </a>
+'''
+
+        html += '</div>'
+        return html
+
+    @env.macro
+    def wiedza_powiazane(current_slug, limit=3):
+        """Generuj powiązane artykuły (ta sama kategoria lub problem)"""
+        all_articles = artykuly()
+
+        # Znajdź aktualny artykuł
+        current = None
+        for a in all_articles:
+            if a['slug'] == current_slug:
+                current = a
+                break
+
+        if not current:
+            return ''
+
+        # Szukaj powiązanych (ta sama kategoria lub problem)
+        related = []
+        for a in all_articles:
+            if a['slug'] == current_slug:
+                continue
+            # Dopasowanie po kategorii lub problemie
+            if (a.get('category') == current.get('category') or
+                a.get('problem') == current.get('problem')):
+                related.append(a)
+
+        if not related:
+            return ''
+
+        # Ogranicz liczbę
+        related = related[:limit]
+
+        html = '<div class="wiedza-powiazane">\n'
+        html += '<h3>Powiązane artykuły</h3>\n'
+        html += '<div class="wiedza-grid wiedza-grid-powiazane">\n'
+
+        for a in related:
+            slug = a['slug']
+            if has_hero(slug):
+                # Karta z hero jako tło + overlay
+                html += f'''
+  <a class="wiedza-card wiedza-card-hero" href="/wiedza/{slug}/" style="background-image: url('/img/wiedza/{slug}/hero.jpg');">
+    <div class="wiedza-overlay">
+      <span class="wiedza-category">{a.get('category', '')}</span>
+      <h4>{a['title']}</h4>
+    </div>
+  </a>
+'''
+            else:
+                # Karta bez hero
+                html += f'''
+  <a class="wiedza-card" href="/wiedza/{slug}/">
+    <div class="wiedza-info">
+      <span class="wiedza-category">{a.get('category', '')}</span>
+      <h4>{a['title']}</h4>
+    </div>
+  </a>
+'''
+
+        html += '</div>\n</div>'
+        return html
+
+    @env.macro
+    def wiedza_kategoria(problem):
+        """Generuj listę artykułów dla danej kategorii/problemu"""
+        all_articles = artykuly()
+        filtered = [a for a in all_articles if a.get('problem') == problem]
+
+        if not filtered:
+            return '<p class="empty-state">Brak artykułów w tej kategorii.</p>'
+
+        html = '<div class="wiedza-grid">\n'
+
+        for a in filtered:
+            html += f'''
+  <a class="wiedza-card" href="/wiedza/{a['slug']}/">
+    <div class="wiedza-info">
+      <span class="wiedza-category">{a.get('category', '')}</span>
+      <h3>{a['title']}</h3>
+      <p>{a.get('description', '')}</p>
+    </div>
+  </a>
+'''
+
+        html += '</div>\n'
+        return html
+
+    @env.macro
+    def wiedza_wszystkie_kategorie():
+        """Zwróć unikalne kategorie problemów"""
+        all_articles = artykuly()
+        problems = set()
+        for a in all_articles:
+            if a.get('problem'):
+                problems.add(a['problem'])
+        return sorted(problems)
