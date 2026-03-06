@@ -358,12 +358,11 @@
 <h2 id="jak-to-zrobic">Jak to zrobić?</h2>
 <p>[Przedstaw instrukcję krok po kroku]</p>
 <h3 id="schemat-dziaania">Schemat działania</h3>
-<div class="highlight"><pre><span></span><code>flowchart TD
+<pre class="mermaid"><code>flowchart TD
     P[PRZYGOTOWANIE] --&gt; W[WYKONANIE]
     W --&gt; S{SPRAWDZENIE}
     S --&gt;|OK| K[KONIEC]
-    S --&gt;|BŁĄD| W
-</code></pre></div>
+    S --&gt;|BŁĄD| W</code></pre>
 <h3 id="krok-1-nazwa">Krok 1: [Nazwa]</h3>
 <p>[Opis kroku]</p>
 <h3 id="krok-2-nazwa">Krok 2: [Nazwa]</h3>
@@ -486,6 +485,10 @@
         <script src="../../js/lightbox.js?v=5"></script>
       
         <script src="../../js/wiedza-filter.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../js/mermaid-init.js"></script>
       
     
   </body>
