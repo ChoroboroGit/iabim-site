@@ -824,3 +824,16 @@ html {
   transform: scale(1.15);
   transform-origin: center;
 }
+
+/* Wszystkie kształty - małe zaokrąglenia */
+.mermaid .node rect,
+.mermaid .node polygon,
+.mermaid .node path {
+  rx: 3px !important;
+  ry: 3px !important;
+}
+
+.mermaid .node.stadium rect {
+  rx: 3px !important;
+  ry: 3px !important;
+}
