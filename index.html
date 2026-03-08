@@ -221,7 +221,7 @@
   
   
     <li class="md-nav__item">
-      <a href="wiedza/" class="md-nav__link">
+      <a href="/#wiedza" class="md-nav__link">
         
   
   
@@ -503,157 +503,156 @@
 </section>
 
 <hr />
-<section id="wiedza">
+<section id="wiedza" class="wiedza-section">
+<div class="wiedza-section-content">
 
-## Centrum Wiedzy
+<h2>Centrum Wiedzy</h2>
+<p class="wiedza-lead">Ekspercka wiedza o architekturze przemysłowej, halach produkcyjnych, magazynach i BIM.</p>
 
-Ekspercka wiedza o architekturze przemysłowej, halach produkcyjnych i BIM.
+<div class="kategorie-nav" id="kategorie-filter">
+  <button class="kategoria-link active" data-filter="all">Wszystkie</button>
+  <button class="kategoria-link" data-filter="flow">Przepływ technologiczny</button>
+  <button class="kategoria-link" data-filter="BIM">BIM</button>
+  <button class="kategoria-link" data-filter="logistyka">Logistyka</button>
+  <button class="kategoria-link" data-filter="technologia">Technologia</button>
+  <button class="kategoria-link" data-filter="koordynacja">Koordynacja</button>
+</div>
 
-<div class="wiedza-preview">
+<div class="wiedza-grid" id="wiedza-grid">
 
-  <a class="wiedza-card" href="wiedza/hala-produkcyjna-projektowanie/">
+  <a class="wiedza-card" href="hala-produkcyjna-projektowanie/" data-problem="flow">
+
     <div class="wiedza-info">
-      <h4>Projektowanie hal produkcyjnych</h4>
+      <span class="wiedza-category">Hale produkcyjne</span>
+      <h3>Projektowanie hal produkcyjnych</h3>
       <p>Kluczowe aspekty projektowania nowoczesnych hal produkcyjnych z uwzględnieniem BIM i przepływu technologicznego.</p>
     </div>
   </a>
 
-  <a class="wiedza-card" href="wiedza/logistyka-wewnetrzna-hali/">
+  <a class="wiedza-card" href="logistyka-wewnetrzna-hali/" data-problem="flow">
+
     <div class="wiedza-info">
-      <h4>Logistyka wewnętrzna hali produkcyjnej</h4>
+      <span class="wiedza-category">Hale produkcyjne</span>
+      <h3>Logistyka wewnętrzna hali produkcyjnej</h3>
       <p>Jak zaplanować przepływ materiałów i produktów w hali produkcyjnej.</p>
     </div>
   </a>
 
-  <a class="wiedza-card" href="wiedza/bim-lod-przemysl/">
+  <a class="wiedza-card" href="bim-lod-przemysl/" data-problem="BIM">
+
     <div class="wiedza-info">
-      <h4>LOD w projektach przemysłowych</h4>
+      <span class="wiedza-category">BIM</span>
+      <h3>LOD w projektach przemysłowych</h3>
       <p>Poziomy szczegółowości modeli BIM dla hal i magazynów.</p>
+    </div>
+  </a>
+
+  <a class="wiedza-card" href="koordynacja-branzowa/" data-problem="koordynacja">
+
+    <div class="wiedza-info">
+      <span class="wiedza-category">Koordynacja</span>
+      <h3>Koordynacja branżowa w halach</h3>
+      <p>Jak skutecznie koordynować branże w dużych obiektach przemysłowych.</p>
+    </div>
+  </a>
+
+  <a class="wiedza-card" href="magazyn-automatyka/" data-problem="technologia">
+
+    <div class="wiedza-info">
+      <span class="wiedza-category">Technologia</span>
+      <h3>Automatyka magazynowa</h3>
+      <p>Systemy automatyki w nowoczesnych magazynach wysokiego składowania.</p>
+    </div>
+  </a>
+
+  <a class="wiedza-card" href="transport-wewnetrzny/" data-problem="logistyka">
+
+    <div class="wiedza-info">
+      <span class="wiedza-category">Logistyka</span>
+      <h3>Transport wewnętrzny w zakładzie</h3>
+      <p>Optymalizacja tras transportu wewnętrznego w zakładach produkcyjnych.</p>
+    </div>
+  </a>
+
+  <a class="wiedza-card" href="koordynacja-mep-hale/" data-problem="koordynacja">
+
+    <div class="wiedza-info">
+      <span class="wiedza-category">BIM</span>
+      <h3>Koordynacja MEP w halach</h3>
+      <p>Filtr kolizji MEP i komunikacja z zespołem projektowym.</p>
+    </div>
+  </a>
+
+  <a class="wiedza-card has-hero" href="test-losowanie-szablonu/" data-problem="technologia">
+    <img src="../img/wiedza/test-losowanie-szablonu/hero.jpg" alt="Test losowania szablonu" class="wiedza-hero">
+    <div class="wiedza-info">
+      <span class="wiedza-category">Test</span>
+      <h3>Test losowania szablonu</h3>
+      <p>Artykuł testowy do weryfikacji randomizacji szablonów generatora</p>
     </div>
   </a>
 </div>
 
-<p style="text-align: center; margin-top: 1.5rem;">
+
+<p style="text-align: center;">
   <a href="wiedza/" class="btn btn-outline">Zobacz wszystkie artykuły</a>
 </p>
 
+</div>
 </section>
 
 <hr />
-<section id="onas">
+<section id="onas" class="onas-section">
 
-## O nas
+<div class="onas-intro">
+  <div class="onas-block">
+    <p><strong>Industry Architecture iABIM</strong> łączy projektowanie architektoniczne z technologią informacji o budynku, wspierając zespoły projektowe w <strong>transformacji procesów pracy na model BIM</strong>. Skupiamy się na dostarczaniu rozwiązań zwiększających przewidywalność, transparentność oraz tempo realizacji projektów budowlanych.</p>
+  </div>
 
-<!-- Blok desktop -->
-<div class="onas-desktop">
-  <table style="width:100%; border-collapse:collapse; border:none;">
-    <tr>
-      <td style="width:66%; vertical-align:top; border:none; padding-right:2rem;">
-        <h3>Specjalizacja</h3>
-        <p><strong>Industry Architecture iABIM</strong> specjalizuje się w dokumentacji BIM dla branży architektoniczno-budowlanej.</p>
-        <p>Pracujemy w obszarach <strong>OpenBim, IFC</strong>, specjalizujemy się w środowisku <strong>Autodesk Revit</strong> oraz zintegrowanych środowiskach <strong>CDE</strong>. Znamy dobrze standard <strong>ISO 19650</strong>.</p>
-        <h3>Historia</h3>
-        <p>Początki działalności sięgają roku 2009. W 2025 roku powstała marka <strong>Industry Architecture iABIM</strong>, której misją jest łączenie wiedzy architektonicznej z nowoczesnymi standardami BIM.</p>
-      </td>
-      <td style="width:34%; text-align:center; vertical-align:middle; border:none;">
-        <img src="img/o_nas/image_1.jpg" alt="Industry Architecture iABIM" style="max-width:100%; border-radius:258px;">
-      </td>
-    </tr>
-  </table>
+  <div class="onas-divider"></div>
+
+  <div class="onas-block">
+    <p>Tworzymy środowisko pracy oparte na <strong>inteligentnym zarządzaniu informacją projektową</strong>, automatyzacji dokumentacji oraz koordynacji międzybranżowej. Wykorzystujemy standardy <strong>OpenBIM</strong>, nowoczesne narzędzia parametryczne oraz metody optymalizacji procesów publikacji danych projektowych.</p>
+  </div>
+
+  <div class="onas-divider"></div>
+
+  <div class="onas-block">
+    <p>Naszym celem jest <strong>redukcja kosztów ukrytych</strong> wynikających z powielania pracy, błędów komunikacyjnych i niespójności modeli projektowych. Wspieramy biura projektowe, wykonawców oraz inwestorów w prowadzeniu projektów zgodnie z międzynarodowymi standardami jakości informacji budowlanej.</p>
+  </div>
 </div>
 
-<div class="onas-mobile">
-  <h3>Specjalizacja</h3>
-  <p><strong>Industry Architecture iABIM</strong> specjalizuje się w dokumentacji BIM dla branży architektoniczno-budowlanej.</p>
-  <img src="img/o_nas/image_1.jpg" alt="Industry Architecture iABIM" style="max-width:100%; border-radius:258px; margin: 1rem 0;">
-  <p>Pracujemy w obszarach <strong>OpenBim, IFC</strong>, specjalizujemy się w środowisku <strong>Autodesk Revit</strong> oraz zintegrowanych środowiskach <strong>CDE</strong>.</p>
+<div class="onas-zespol">
+  <h3>Zespół</h3>
+  <div class="onas-zespol-grid">
+    <div class="onas-osoba">
+      <h4>Piotr Choromański</h4>
+      <p class="rola">Architekt / BIM Lead</p>
+      <p>Specjalizuje się w dokumentacji architektonicznej oraz wdrażaniu standardów BIM.</p>
+    </div>
+    <div class="onas-osoba">
+      <h4>Małgorzata Choromańska</h4>
+      <p class="rola">Idea / Concept / Script Specialist</p>
+      <p>Tworzy wizję firmy i narzędzia automatyzujące pracę w Revit i pyRevit.</p>
+    </div>
+  </div>
 </div>
 
----
-
-### Zespół
-
-<div class="onas-desktop">
-  <table style="width:100%; border-collapse:collapse; border:none;">
-    <tr>
-      <td style="width:50%; vertical-align:top; border:none; padding:1rem;">
-        <table style="width:100%; border:none;">
-          <tr>
-            <td style="width:60%; vertical-align:top; border:none; padding-right:1rem;">
-              <h4>Piotr Choromański</h4>
-              <p><em>Architekt / BIM Lead</em></p>
-              <p>Specjalizuje się w dokumentacji architektonicznej oraz wdrażaniu standardów BIM.</p>
-            </td>
-            <td style="width:40%; vertical-align:middle; border:none; text-align:center;">
-              <img src="img/_zespol/osoba1.jpg" alt="Piotr Choromański" style="max-width:100%; border-radius:20px;">
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td style="width:50%; vertical-align:top; border:none; padding:1rem;">
-        <table style="width:100%; border:none;">
-          <tr>
-            <td style="width:60%; vertical-align:top; border:none; padding-right:1rem;">
-              <h4>Małgorzata Choromańska</h4>
-              <p><em>Idea / Concept / Script Specialist</em></p>
-              <p>Tworzy wizję firmy i narzędzia automatyzujące pracę w Revit i pyRevit.</p>
-            </td>
-            <td style="width:40%; vertical-align:middle; border:none; text-align:center;">
-              <img src="img/_zespol/osoba2.jpg" alt="Małgorzata Choromańska" style="max-width:100%; border-radius:20px;">
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<div class="onas-mobile">
-  <h4>Piotr Choromański</h4>
-  <p><em>Architekt / BIM Lead</em></p>
-  <img src="img/_zespol/osoba1.jpg" alt="Piotr Choromański" style="width:70%; border-radius:20px; margin:0.5rem 0;">
-  <p>Specjalizuje się w dokumentacji architektonicznej oraz wdrażaniu standardów BIM.</p>
-
-  <h4>Małgorzata Choromańska</h4>
-  <p><em>Idea / Concept / Script Specialist</em></p>
-  <img src="img/_zespol/osoba2.jpg" alt="Małgorzata Choromańska" style="width:70%; border-radius:20px; margin:0.5rem 0;">
-  <p>Tworzy wizję firmy i narzędzia automatyzujące pracę w Revit i pyRevit.</p>
-</div>
-
----
-
-### Kontakt
-
-<div class="contact-grid">
-  <div class="contact-info">
-    <h4>Dane kontaktowe</h4>
-    <p><strong>Biuro</strong><br>
-    ul. Stelmachów 58b/3<br>
-    31-234 Kraków</p>
-    <p><strong>E-mail</strong><br>
-    <a href="mailto:kontakt@iabim.eu">kontakt@iabim.eu</a></p>
-    <p><strong>Telefon</strong><br>
+<div class="onas-kontakt">
+  <div class="onas-kontakt-blok">
+    <h4>Kontakt</h4>
+    <p>ul. Stelmachów 58b/3<br>31-234 Kraków</p>
+    <p><a href="mailto:kontakt@iabim.eu">kontakt@iabim.eu</a><br>
     <a href="tel:+48785195173">+48 785 195 173</a></p>
   </div>
-  <div class="contact-info">
+  <div class="onas-kontakt-blok">
     <h4>Dane firmowe</h4>
-    <p><strong>Industry Architecture iABIM</strong><br>
-    Stelmachów 58b/3<br>
-    31-234 Kraków</p>
-    <p><strong>NIP:</strong> 657-215-74-73<br>
-    <strong>REGON:</strong> 021040055</p>
+    <p>Industry Architecture iABIM<br>
+    NIP: 657-215-74-73<br>
+    REGON: 021040055</p>
+    <p><a href="polityka-prywatnosci/">Polityka prywatności</a></p>
   </div>
 </div>
-
-<div class="cta-section">
-  <h2>Napisz do nas</h2>
-  <p>Chętnie odpowiemy na pytania dotyczące dokumentacji BIM, koordynacji czy automatyzacji.</p>
-  <a href="mailto:kontakt@iabim.eu" class="btn btn-primary">kontakt@iabim.eu</a>
-</div>
-
-<p style="font-size: smaller; text-align: right;">
-<a href="polityka-prywatnosci/">Polityka prywatności</a>
-</p>
 
 </section>
 
