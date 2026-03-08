@@ -928,3 +928,182 @@ html {
   border-radius: 8px;
   margin: 1.5rem 0;
 }
+
+/* --- OFERTA --- */
+.oferta-section {
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.oferta-hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.oferta-hero h2 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #546e7a;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.oferta-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.oferta-card {
+  display: block;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.oferta-card:hover {
+  border-color: #546e7a;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.oferta-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #37474f;
+  margin: 0 0 0.5rem 0;
+}
+
+.oferta-card p {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Sekcje szczegółów - fullscreen z tłem */
+.oferta-detail {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  padding: 4rem 2rem;
+}
+
+.oferta-detail::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(55, 71, 79, 0.92) 0%, rgba(84, 110, 122, 0.88) 100%);
+}
+
+.oferta-detail-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  color: white;
+}
+
+.oferta-detail h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 1rem 0;
+  border-bottom: 2px solid rgba(255,255,255,0.3);
+  padding-bottom: 0.5rem;
+}
+
+.oferta-detail .oferta-lead {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.oferta-detail .oferta-sub {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: white;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.oferta-detail .oferta-desc {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Powrót do kart */
+.oferta-back {
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  margin-top: 2.5rem;
+  transition: color 0.2s;
+}
+
+.oferta-back:hover {
+  color: rgba(255,255,255,0.8);
+}
+
+/* Tła dla sekcji */
+#projektowanie {
+  background-image: url('../img/oferta/projektowanie.jpg');
+}
+#dokumentacja-bim {
+  background-image: url('../img/oferta/dokumentacja.jpg');
+}
+#technologia {
+  background-image: url('../img/oferta/technologia.jpg');
+}
+
+@media screen and (max-width: 900px) {
+  .oferta-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .oferta-section {
+    min-height: auto;
+    padding: 2rem 0;
+  }
+  .oferta-cards {
+    grid-template-columns: 1fr;
+  }
+  .oferta-hero {
+    margin-bottom: 2rem;
+  }
+  .oferta-detail {
+    background-attachment: scroll;
+    min-height: auto;
+    padding: 3rem 1.5rem;
+  }
+  .oferta-detail h3 {
+    font-size: 1.1rem;
+  }
+  .oferta-detail .oferta-lead {
+    font-size: 0.9rem;
+  }
+}
