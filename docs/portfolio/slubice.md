@@ -15,6 +15,10 @@ stage: "Koncepcja"
 
 <div class="project-meta">
   <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>	IG APARTMENTS</b></span>
+  </div>
+  <div class="meta-item">
     <strong>Typ</strong>
     <span>Budynek handlowy</span>
   </div>
@@ -34,19 +38,23 @@ stage: "Koncepcja"
     <strong>Realizacja</strong>
     <span>2018</span>
   </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b></b></span>
+  </div>
 </div>
 
 ---
 
 ## O projekcie
 
-Projekt rewitalizacji historycznego podwórka na krakowskim Kazimierzu. Koncepcja zakłada stworzenie zielonej przestrzeni wspólnej dla mieszkańców z elementami małej architektury i oświetleniem.
+Nowoczesny park handlowy o czytelnej, modułowej strukturze architektonicznej, zaprojektowany jako zespół parterowych pawilonów usługowo-handlowych z dominantą dużych przeszkleń witrynowych. Forma obiektu utrzymana jest w minimalistycznej, współczesnej stylistyce, z zastosowaniem prostych podziałów elewacyjnych i stonowanej palety materiałowej. Układ przestrzenny opiera się na wygodnej komunikacji pieszej pomiędzy lokalami oraz funkcjonalnym systemie obsługi komunikacji samochodowej, w tym rozbudowanej strefie parkingowej. Projekt zakłada elastyczność aranżacji powierzchni najmu oraz integrację obiektu z otoczeniem poprzez uporządkowaną przestrzeń publiczną i elementy zieleni.
 
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
-- Model koncepcyjny
+- Projekt koncepcyjny
+- Bilans mas ziemnych
 - Wizualizacje
-- Inwentaryzacja 3D
 
 
 ## Galeria
@@ -105,5 +113,5 @@ Projekt rewitalizacji historycznego podwórka na krakowskim Kazimierzu. Koncepcj
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>

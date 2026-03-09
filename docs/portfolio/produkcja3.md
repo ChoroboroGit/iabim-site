@@ -1,7 +1,7 @@
 ---
 name: "Budynek produkcyjny"
-type: "Budynek produkcyjny"
-area: "9 000 m²"
+type: "Budynek biurowo-laboratoryjny"
+area: "6 700 m²"
 stage: "Realizacja"
 ---
 
@@ -15,12 +15,16 @@ stage: "Realizacja"
 
 <div class="project-meta">
   <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>METROPLAN</b></span>
+  </div>
+  <div class="meta-item">
     <strong>Typ</strong>
-    <span>Budynek produkcyjny</span>
+    <span>Budynek biurowo-laboratoryjny</span>
   </div>
   <div class="meta-item">
     <strong>Powierzchnia</strong>
-    <span>9 000 m²</span>
+    <span>6 700 m²</span>
   </div>
   <div class="meta-item">
     <strong>Stadium</strong>
@@ -28,11 +32,15 @@ stage: "Realizacja"
   </div>
   <div class="meta-item">
     <strong>Lokalizacja</strong>
-    <span>Stoczek</span>
+    <span>Bez lokalizacji</span>
   </div>
   <div class="meta-item">
     <strong>Realizacja</strong>
     <span>2023</span>
+  </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b></b></span>
   </div>
 </div>
 
@@ -40,13 +48,14 @@ stage: "Realizacja"
 
 ## O projekcie
 
-Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozpiętości, nowoczesne systemy wentylacji i oświetlenia. Projekt realizowany w technologii BIM od fazy koncepcyjnej.
+Budynek biurowo‑laboratoryjny zaprojektowany jako projekt koncepcyjny i przetargowy w celu poszukiwania optymalnej lokalizacji oraz opracowania układu funkcjonalnego w formule ideal plan layout, przygotowany na zlecenie firmy Metroplan.
 
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
-- Model konstrukcyjny LOD 300
+- Projekt przetargowy
 - Koordynacja branżowa
-- Dokumentacja powykonawcza
+- Kontrola kolizji
+- BIM management
 
 
 ## Galeria
@@ -62,12 +71,6 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
     <a href="../../img/portfolio/produkcja3/2.jpg" class="glightbox" data-gallery="portfolio-produkcja3">
       <img src="../../img/portfolio/produkcja3/2.jpg" alt="2">
       <figcaption>2</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja3/2_Easy-Resize.com.jpg" class="glightbox" data-gallery="portfolio-produkcja3">
-      <img src="../../img/portfolio/produkcja3/2_Easy-Resize.com.jpg" alt="2 Easy Resize.Com">
-      <figcaption>2 Easy Resize.Com</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
@@ -88,34 +91,10 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
       <figcaption>5</figcaption>
     </a>
   </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja3/INST_01.jpg" class="glightbox" data-gallery="portfolio-produkcja3">
-      <img src="../../img/portfolio/produkcja3/INST_01.jpg" alt="Inst 01">
-      <figcaption>Inst 01</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja3/INST_01_Easy-Resize.com.jpg" class="glightbox" data-gallery="portfolio-produkcja3">
-      <img src="../../img/portfolio/produkcja3/INST_01_Easy-Resize.com.jpg" alt="Inst 01 Easy Resize.Com">
-      <figcaption>Inst 01 Easy Resize.Com</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja3/INST_02.jpg" class="glightbox" data-gallery="portfolio-produkcja3">
-      <img src="../../img/portfolio/produkcja3/INST_02.jpg" alt="Inst 02">
-      <figcaption>Inst 02</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja3/INST_02_Easy-Resize.com.jpg" class="glightbox" data-gallery="portfolio-produkcja3">
-      <img src="../../img/portfolio/produkcja3/INST_02_Easy-Resize.com.jpg" alt="Inst 02 Easy Resize.Com">
-      <figcaption>Inst 02 Easy Resize.Com</figcaption>
-    </a>
-  </figure>
 </div>
 
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>

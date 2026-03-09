@@ -15,6 +15,10 @@ stage: "Realizacja"
 
 <div class="project-meta">
   <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>INTEGRA</b></span>
+  </div>
+  <div class="meta-item">
     <strong>Typ</strong>
     <span>Budynek produkcyjny</span>
   </div>
@@ -34,18 +38,22 @@ stage: "Realizacja"
     <strong>Realizacja</strong>
     <span>2016</span>
   </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b>SKANSKA</b></span>
+  </div>
 </div>
 
 ---
 
 ## O projekcie
 
-Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozpiętości, nowoczesne systemy wentylacji i oświetlenia. Projekt realizowany w technologii BIM od fazy koncepcyjnej.
+Obiekt przemysłowy dla branży spożywczej, zaprojektowany zgodnie z wymaganiami sanitarnymi HACCP, o funkcjonalnym i czytelnym układzie przestrzennym. Bryła łączy strefę produkcyjną, magazynową oraz zaplecze biurowo-socjalne. W projekcie zastosowano szatnię przepustową o podwyższonym standardzie higienicznym, umożliwiającą kontrolowany przepływ pracowników pomiędzy strefami technologicznymi. Obiekt uzupełnia przyzakładowa podczyszczalnia ścieków, część mieszkalna dla pracowników pełniących stały nadzór nad produkcją oraz przestrzeń dla obsługi nadzorującej funkcjonowanie zakładu. Całość utrzymano w estetyce współczesnego obiektu przemysłowego o prostej, modułowej formie architektonicznej.
 
 
 **Zespół autorski:** ACI- PROJEKT - konstrukcja, PROINSTAL - instalacje sanitarne,MKJANURA - instalacje elektryczne
 
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
 - Model konstrukcyjny LOD 300
 - Koordynacja branżowa
@@ -65,6 +73,12 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
     <a href="../../img/portfolio/produkcja2/001_97944_r0_940.jpg" class="glightbox" data-gallery="portfolio-produkcja2">
       <img src="../../img/portfolio/produkcja2/001_97944_r0_940.jpg" alt="001 97944 R0 940">
       <figcaption>001 97944 R0 940</figcaption>
+    </a>
+  </figure>
+  <figure class="gallery-item">
+    <a href="../../img/portfolio/produkcja2/001_stoczek_web.jpg" class="glightbox" data-gallery="portfolio-produkcja2">
+      <img src="../../img/portfolio/produkcja2/001_stoczek_web.jpg" alt="001 Stoczek Web">
+      <figcaption>001 Stoczek Web</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
@@ -90,5 +104,5 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>

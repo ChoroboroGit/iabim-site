@@ -20,7 +20,7 @@ JPEG_QUALITY = 85      # jakość JPEG (1-100)
 MAX_FILE_SIZE_KB = 500 # maksymalny rozmiar pliku w KB
 
 def _kompresuj_obrazek(img_path):
-    """Kompresuj obrazek jeśli jest za duży. Duże PNG konwertuje do JPEG."""
+    """Kompresuj obrazek jeśli jest za duży. Duże PNG i BMP konwertuje do JPEG."""
     try:
         file_size_kb = os.path.getsize(img_path) / 1024
 
@@ -29,7 +29,21 @@ def _kompresuj_obrazek(img_path):
             needs_resize = width > MAX_WIDTH or height > MAX_HEIGHT
             needs_compress = file_size_kb > MAX_FILE_SIZE_KB
             is_png = str(img_path).lower().endswith('.png')
+            is_bmp = str(img_path).lower().endswith('.bmp')
             has_transparency = img.mode == 'RGBA' and img.getchannel('A').getextrema()[0] < 255
+
+            # BMP zawsze konwertuj do JPEG
+            if is_bmp:
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                if needs_resize:
+                    img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.Resampling.LANCZOS)
+                new_path = img_path.with_suffix('.jpg')
+                img.save(new_path, 'JPEG', quality=JPEG_QUALITY, optimize=True)
+                os.remove(img_path)
+                new_size_kb = os.path.getsize(new_path) / 1024
+                print(f"[macros] Skompresowano: {img_path.name} -> {new_path.name} ({file_size_kb:.0f}KB -> {new_size_kb:.0f}KB)")
+                return True
 
             # Nie kompresuj jeśli nie trzeba lub to już JPEG pod limitem
             is_jpeg = str(img_path).lower().endswith(('.jpg', '.jpeg'))
@@ -96,7 +110,8 @@ def _pobierz_obrazki(img_portfolio_dir, slug, kompresuj=True):
             list(gallery_dir.glob("*.jpg")) +
             list(gallery_dir.glob("*.jpeg")) +
             list(gallery_dir.glob("*.png")) +
-            list(gallery_dir.glob("*.webp"))
+            list(gallery_dir.glob("*.webp")) +
+            list(gallery_dir.glob("*.bmp"))
         )
 
     images = _skanuj_obrazki()
@@ -145,7 +160,7 @@ def _kompresuj_obrazki_wiedza(project_dir):
         if not slug_dir.is_dir():
             continue
         for img_path in slug_dir.glob("*"):
-            if img_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.webp']:
+            if img_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.webp', '.bmp']:
                 _kompresuj_obrazek(img_path)
 
 
@@ -232,6 +247,10 @@ stage: "{row['stadium']}"
 
 <div class="project-meta">
   <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>{row.get('klient', '-')}</b></span>
+  </div>
+  <div class="meta-item">
     <strong>Typ</strong>
     <span>{row['typ']}</span>
   </div>
@@ -251,6 +270,10 @@ stage: "{row['stadium']}"
     <strong>Realizacja</strong>
     <span>{row.get('realizacja', '')}</span>
   </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b>{row.get('wykonawca', '-')}</b></span>
+  </div>
 </div>
 
 ---
@@ -259,7 +282,7 @@ stage: "{row['stadium']}"
 
 {opis_pelny}
 {zespol_html}
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
 {zakres_html}
 {gallery_html}
@@ -267,7 +290,7 @@ stage: "{row['stadium']}"
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>
 '''
             # Zapisz tylko jeśli treść się zmieniła
@@ -289,6 +312,14 @@ def define_env(env):
 
     # Kompresuj obrazki w folderach wiedzy
     _kompresuj_obrazki_wiedza(env.project_dir)
+
+    # Kompresuj obrazki oferty i o_nas
+    for folder in ["oferta", "o_nas"]:
+        img_dir = Path(env.project_dir) / "docs" / "img" / folder
+        if img_dir.exists():
+            for img in img_dir.glob("*"):
+                if img.suffix.lower() in ['.jpg', '.jpeg', '.png', '.webp', '.bmp']:
+                    _kompresuj_obrazek(img)
 
     docs_dir = Path(env.project_dir) / "docs"
     img_portfolio_dir = docs_dir / "img" / "portfolio"
@@ -313,6 +344,8 @@ def define_env(env):
                         row['obrazek'] = "img/placeholder.png"
                     projects.append(row)
 
+        # Sortuj po roku realizacji (malejąco - najnowsze pierwsze)
+        projects.sort(key=lambda p: int(p.get('realizacja', 0) or 0), reverse=True)
         return projects
 
     @env.macro
@@ -329,8 +362,8 @@ def define_env(env):
     <img src="../{p['obrazek']}" alt="{p['nazwa']}">
     <div class="portfolio-info">
       <h4>{p['nazwa']}</h4>
-      <p><strong>{p['typ']}</strong></p>
-      <p>{p['powierzchnia']} &bull; {p['stadium']}</p>
+      <p><strong>{p.get('klient') or p['typ']}</strong></p>
+      <p>{p['typ']} &bull; {p['powierzchnia']} &bull; {p['stadium']}</p>
       <p>{p.get('realizacja', '')}</p>
     </div>
   </a>
@@ -342,7 +375,7 @@ def define_env(env):
         if len(projects) > 8:
             html += '''
 <div class="portfolio-toggle">
-  <button class="btn btn-outline" onclick="document.getElementById('portfolio-grid').classList.add('expanded'); this.style.display='none';">Pokaż więcej</button>
+  <button class="kategoria-link wiedza-back" onclick="document.getElementById('portfolio-grid').classList.add('expanded'); this.style.display='none';">Pokaż więcej</button>
 </div>
 '''
         return html
@@ -373,8 +406,7 @@ def define_env(env):
     <img src="{p['obrazek']}" alt="{p['nazwa']}">
     <div class="portfolio-info">
       <h4>{p['nazwa']}</h4>
-      <p>{p['typ']} &bull; {p['powierzchnia']}</p>
-      <p>{p.get('realizacja', '')}</p>
+      <p>{p.get('klient') + ' · ' if p.get('klient') else ''}{p['typ']} · {p['powierzchnia']}</p>
     </div>
   </a>
 '''
@@ -412,7 +444,7 @@ def define_env(env):
         return ''
 
     @env.macro
-    def wiedza_karty():
+    def wiedza_karty(from_index=False):
         """Generuj karty artykułów jako HTML"""
         articles = artykuly()
 
@@ -424,11 +456,21 @@ def define_env(env):
         for a in articles:
             problem = a.get('problem', '')
             slug = a['slug']
-            hero_img = f'<img src="../img/wiedza/{slug}/hero.jpg" alt="{a["title"]}" class="wiedza-hero">' if has_hero(slug) else ''
-            hero_class = ' has-hero' if has_hero(slug) else ''
+            has_hero_img = has_hero(slug)
+
+            # Różne ścieżki dla głównej vs /wiedza/
+            if from_index:
+                link = f"wiedza/{slug}/"
+                img_src = f"img/wiedza/{slug}/hero.jpg"
+            else:
+                link = f"{slug}/"
+                img_src = f"../img/wiedza/{slug}/hero.jpg"
+
+            hero_img = f'<img src="{img_src}" alt="{a["title"]}" class="wiedza-hero">' if has_hero_img else ''
+            hero_class = ' has-hero' if has_hero_img else ''
 
             html += f'''
-  <a class="wiedza-card{hero_class}" href="{slug}/" data-problem="{problem}">
+  <a class="wiedza-card{hero_class}" href="{link}" data-problem="{problem}">
     {hero_img}
     <div class="wiedza-info">
       <span class="wiedza-category">{a.get('category', '')}</span>

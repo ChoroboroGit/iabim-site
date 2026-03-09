@@ -1,7 +1,7 @@
 ---
 name: "Budynek produkcyjny"
 type: "Budynek produkcyjny"
-area: "30 000 m²"
+area: "32 000 m²"
 stage: "Realizacja"
 ---
 
@@ -15,12 +15,16 @@ stage: "Realizacja"
 
 <div class="project-meta">
   <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>KOMA TOMASZ MAGIERA</b></span>
+  </div>
+  <div class="meta-item">
     <strong>Typ</strong>
     <span>Budynek produkcyjny</span>
   </div>
   <div class="meta-item">
     <strong>Powierzchnia</strong>
-    <span>30 000 m²</span>
+    <span>32 000 m²</span>
   </div>
   <div class="meta-item">
     <strong>Stadium</strong>
@@ -34,15 +38,19 @@ stage: "Realizacja"
     <strong>Realizacja</strong>
     <span>2026</span>
   </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b>TAKENAKA</b></span>
+  </div>
 </div>
 
 ---
 
 ## O projekcie
 
-Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozpiętości, nowoczesne systemy wentylacji i oświetlenia. Projekt realizowany w technologii BIM od fazy koncepcyjnej.
+Hala przemysłowa o prostej, funkcjonalnej formie architektonicznej, oparta na geometrycznej bryle z wyraźnie wydzieloną częścią biurowo-socjalną oraz produkcyjną. Elewacje utrzymano w powtarzalnym, modułowym układzie paneli i przeszkleń, zgodnym z rytmem konstrukcji obiektu. Strefa produkcyjna została zaprojektowana jako przestrzeń o dużych rozpiętościach umożliwiających elastyczne zagospodarowanie technologiczne, z bezpośrednim dostępem do stref logistycznych, manewrowych i magazynowych. W obiekcie przewidziano również część magazynową wspierającą procesy produkcyjne, a część biurowo-socjalna została podkreślona większym udziałem przeszklenia i bardziej uporządkowaną kompozycją elewacji. Całość utrzymano w estetyce współczesnego obiektu przemysłowego o wysokiej funkcjonalności operacyjnej.
 
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
 - Model konstrukcyjny LOD 400
 - Koordynacja branżowa
@@ -123,5 +131,5 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>

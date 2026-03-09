@@ -1,8 +1,8 @@
 ---
 name: "Budynek produkcyjny"
 type: "Budynek produkcyjny"
-area: "31 000 m²"
-stage: "Realizacja"
+area: "72 000 m²"
+stage: "Koncepcja wielobranżowa"
 ---
 
 # Budynek produkcyjny
@@ -15,24 +15,32 @@ stage: "Realizacja"
 
 <div class="project-meta">
   <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>METROPLAN</b></span>
+  </div>
+  <div class="meta-item">
     <strong>Typ</strong>
     <span>Budynek produkcyjny</span>
   </div>
   <div class="meta-item">
     <strong>Powierzchnia</strong>
-    <span>31 000 m²</span>
+    <span>72 000 m²</span>
   </div>
   <div class="meta-item">
     <strong>Stadium</strong>
-    <span>Realizacja</span>
+    <span>Koncepcja wielobranżowa</span>
   </div>
   <div class="meta-item">
     <strong>Lokalizacja</strong>
-    <span>Jawor</span>
+    <span>Opatówek</span>
   </div>
   <div class="meta-item">
     <strong>Realizacja</strong>
     <span>2021</span>
+  </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b></b></span>
   </div>
 </div>
 
@@ -40,9 +48,9 @@ stage: "Realizacja"
 
 ## O projekcie
 
-Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozpiętości, nowoczesne systemy wentylacji i oświetlenia. Projekt realizowany w technologii BIM od fazy koncepcyjnej.
+Obiekt przemysłowy dla branży spożywczej wykonany na zlecenie firmy Metroplan Polska, zaprojektowany jako hala produkcyjna o prostej, funkcjonalnej bryle z wyraźnie wydzieloną częścią produkcyjną, magazynową oraz biurowo-socjalną. Koncepcja zakłada realizację muzeum z trasą zwiedzania przebiegającą na różnych poziomach, umożliwiającą obserwację procesu produkcyjnego w przekroju funkcjonalnym obiektu. Kompozycja elewacji opiera się na powtarzalnym rytmie modułów i przeszkleń podkreślających strefy wejściowe i administracyjne, natomiast przestrzeń hali wykazuje dużą elastyczność funkcjonalną. Projekt uwzględnia wymagania branży spożywczej oraz wysokie standardy techniczne, a jednocześnie integruje elementy ekspozycyjne w strukturze przemysłowej bryły.
 
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
 - Model konstrukcyjny LOD 300
 - Koordynacja branżowa
@@ -89,12 +97,6 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/produkcja1/CFF_006.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
-      <img src="../../img/portfolio/produkcja1/CFF_006.jpg" alt="Cff 006">
-      <figcaption>Cff 006</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
     <a href="../../img/portfolio/produkcja1/CFF_007.jpg" class="glightbox" data-gallery="portfolio-produkcja1">
       <img src="../../img/portfolio/produkcja1/CFF_007.jpg" alt="Cff 007">
       <figcaption>Cff 007</figcaption>
@@ -111,5 +113,5 @@ Hala produkcyjna z częścią biurowo-socjalną. Konstrukcja stalowa, duże rozp
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>

@@ -24,221 +24,187 @@ hide:
 
 ---
 
-<section id="oferta">
+<section id="oferta" class="oferta-section">
 
-## Oferta
-
-<div class="features-grid">
-  <div class="feature-card">
-    <div class="feature-icon">&#128204;</div>
-    <h3>Dokumentacja BIM</h3>
-    <p>Arkusze, zestawienia, detale. LOD/LOI wg wymagań kontraktu. Formaty: RVT, IFC, DWG, PDF/A.</p>
-  </div>
-
-  <div class="feature-card">
-    <div class="feature-icon">&#128269;</div>
-    <h3>Koordynacja kolizji</h3>
-    <p>Reguły, iteracje, raporty KPI. Navisworks / IFC. Wymiana uwag w BCF lub XLSX.</p>
-  </div>
-
-  <div class="feature-card">
-    <div class="feature-icon">&#9881;</div>
-    <h3>Automatyzacje Revit</h3>
-    <p>Python / pyRevit / Dynamo. Generowanie widoków, układy arkuszy, porządkowanie parametrów.</p>
-  </div>
-
-  <div class="feature-card">
-    <div class="feature-icon">&#128200;</div>
-    <h3>Raporty i przepływy</h3>
-    <p>Excel/Word/PDF z danych Revit. Eksporty z logotypami, gotowe do publikacji.</p>
-  </div>
+<div class="oferta-hero">
+  <h2>Architektura i BIM w projektowaniu, dokumentacji i technologii pracy projektowej.</h2>
 </div>
 
-<div class="onas-mobile" style="display:none;">
-
-### Dokumentacja BIM
-
-**Arkusze, zestawienia, detale. LOD/LOI wg wymagan.**
-
-- Komplet rysunkow wykonawczych wg standardu biura/inwestora.
-- Zestawienia wskazanych elementow z kontrola spojnosci parametrow.
-- Detale i widoki pomocnicze wg preferencji projektanta.
-
-<img src="img/_uslugi/image_1.jpg" alt="Dokumentacja BIM" style="width:100%; border-radius:10px; margin:1rem 0;">
-
-### Koordynacja kolizji
-
-**Reguly, iteracje, raporty KPI. Navisworks / IFC.**
-
-- Pakiety koordynacyjne (branze, zakres, tolerancje).
-- Reguly i progi (geometria, przeswity, parametry).
-- Iteracje tygodniowe/sprinterskie, statusy.
-
-### Automatyzacje Revit
-
-**Python / pyRevit / Dynamo - przyspieszam powtarzalne czynnosci.**
-
-- Generowanie widokow scian pomieszczen z opisem i wymiarowaniem.
-- Uklad widokow na arkuszach kolumnowo wg prefiksow.
-- Krotszy czas publikacji arkuszy i mniej bledow.
-
-### Raporty i przeplywy danych
-
-**Excel/Word/PDF z danych Revit i zrodel pomocniczych.**
-
-- Eksporty do .xlsx z naglowkami projektu i logotypami.
-- Generowanie Word/PDF z szablonow.
-- Gotowe do publikacji.
-
+<div class="oferta-cards">
+  <a href="#projektowanie" class="oferta-card">
+    <h3>Projektowanie wielobranżowe</h3>
+    <p>Pełna koordynacja rozwiązań architektonicznych, konstrukcyjnych i instalacyjnych.</p>
+  </a>
+  <a href="#dokumentacja-bim" class="oferta-card">
+    <h3>Dokumentacja BIM</h3>
+    <p>Modele i dokumentacja na podstawie modeli cyfrowych.</p>
+  </a>
+  <a href="#technologia" class="oferta-card">
+    <h3>Technologia projektowania</h3>
+    <p>Narzędzia i metody wspierające proces projektowy.</p>
+  </a>
 </div>
 
 </section>
 
+<section id="projektowanie" class="oferta-detail">
+  <div class="oferta-detail-content">
+    <h3>Projektowanie wielobranżowe</h3>
+    <p class="oferta-lead">Projektowanie obiektów w środowisku BIM z uwzględnieniem pełnej koordynacji rozwiązań architektonicznych, konstrukcyjnych oraz instalacyjnych.</p>
+
+    <p class="oferta-sub">Koncepcja projektowa</p>
+    <p class="oferta-desc">Etap definiujący podstawowe założenia funkcjonalne, przestrzenne i techniczne inwestycji. Warianty rozwiązań umożliwiające wybór kierunku dalszych prac.</p>
+
+    <p class="oferta-sub">Projekt budowlany</p>
+    <p class="oferta-desc">Opracowanie rozwiązań wspierających proces uzyskiwania decyzji administracyjnych z uwzględnieniem wymagań formalnych oraz koordynacji międzybranżowej.</p>
+
+    <p class="oferta-sub">Projekt wykonawczy</p>
+    <p class="oferta-desc">Uszczegółowienie rozwiązań projektowych. Dokumentacja wykonawcza jako narzędzie techniczne wspierające proces projektowy i realizacyjny.</p>
+
+    <p class="oferta-sub">Koordynacja wielobranżowa</p>
+    <p class="oferta-desc">Integracja rozwiązań pomiędzy branżą architektoniczną, konstrukcyjną, instalacyjną, elektryczną oraz teletechniczną. Minimalizacja kolizji i optymalizacja rozwiązań.</p>
+
+    <a href="oferta/projektowanie-rozwinięcie/" class="kategoria-link">Rozwinięcie</a>
+    <a href="#oferta" class="kategoria-link wiedza-back">Powrót do oferty</a>
+  </div>
+</section>
+
+<section id="dokumentacja-bim" class="oferta-detail">
+  <div class="oferta-detail-content">
+    <h3>Dokumentacja BIM</h3>
+    <p class="oferta-lead">Przygotowanie modeli BIM oraz opracowań dokumentacji projektowej na podstawie informacji zawartych w modelu cyfrowym.</p>
+
+    <p class="oferta-sub">Modelowanie BIM</p>
+    <p class="oferta-desc">Opracowanie trójwymiarowego modelu obiektu z uwzględnieniem informacji geometrycznych oraz danych technicznych. Modele zgodne z wymaganymi poziomami LOD/LOI.</p>
+
+    <p class="oferta-sub">Koordynacja kolizji</p>
+    <p class="oferta-desc">Analiza modelu projektowego w zakresie wzajemnych oddziaływań elementów konstrukcyjnych, instalacyjnych oraz architektonicznych.</p>
+
+    <p class="oferta-sub">Zestawienia i raporty</p>
+    <p class="oferta-desc">Generowanie informacji ilościowych i jakościowych na podstawie danych zawartych w modelu BIM. Zestawienia elementów oraz raporty techniczne.</p>
+
+    <p class="oferta-sub">Dokumentacja wykonawcza z modelu</p>
+    <p class="oferta-desc">Opracowania rysunkowe oraz techniczne generowane na podstawie modelu BIM. Wysoka spójność pomiędzy modelem cyfrowym a dokumentacją.</p>
+
+    <a href="oferta/dokumentacja-bim-rozwinięcie/" class="kategoria-link">Rozwinięcie</a>
+    <a href="#oferta" class="kategoria-link wiedza-back">Powrót do oferty</a>
+  </div>
+</section>
+
+<section id="technologia" class="oferta-detail">
+  <div class="oferta-detail-content">
+    <h3>Technologia projektowania</h3>
+    <p class="oferta-lead">Rozwój narzędzi i metod wspierających proces projektowy w środowisku BIM oraz optymalizacja pracy zespołu poprzez rozwiązania cyfrowe.</p>
+
+    <p class="oferta-sub">Automatyzacja pracy w Revit</p>
+    <p class="oferta-desc">Wdrażanie rozwiązań wspierających pracę projektową poprzez narzędzia skryptowe oraz rozszerzenia systemowe. Procedury generowania dokumentacji i zarządzania danymi.</p>
+
+    <p class="oferta-sub">Skrypty projektowe</p>
+    <p class="oferta-desc">Projektowanie i wdrażanie rozwiązań programistycznych wspierających modelowanie i dokumentację. Technologie: Dynamo, Python, pyRevit.</p>
+
+    <p class="oferta-sub">Generowanie dokumentacji</p>
+    <p class="oferta-desc">Spersonalizowane narzędzia do dynamicznego tworzenia dokumentacji projektowej. Przetwarzanie danych w formatach Excel/CSV z szybkim dostosowywaniem do zmian.</p>
+
+    <p class="oferta-sub">Optymalizacja workflow</p>
+    <p class="oferta-desc">Analiza procesu projektowego w celu zwiększenia efektywności pracy zespołu. Poprawa jakości danych i organizacji pracy w środowisku BIM.</p>
+
+    <a href="oferta/technologia-rozwinięcie/" class="kategoria-link">Rozwinięcie</a>
+    <a href="#oferta" class="kategoria-link wiedza-back">Powrót do oferty</a>
+  </div>
+</section>
+
 ---
 
-<section id="portfolio">
+<section id="portfolio" class="portfolio-section">
 
 ## Portfolio
 
 {{ portfolio_karty_index() }}
 
 <p style="text-align: center; margin-top: 1.5rem;">
-  <a href="portfolio/" class="btn btn-outline">Zobacz wszystkie projekty</a>
+  <a href="portfolio/" class="kategoria-link wiedza-back">Zobacz wszystkie projekty</a>
 </p>
 
 </section>
 
 ---
 
-<section id="wiedza">
+<section id="wiedza" class="wiedza-section">
+<div class="wiedza-section-content">
 
-## Centrum Wiedzy
+<h2>Centrum Wiedzy</h2>
+<p class="wiedza-lead">Ekspercka wiedza o architekturze przemysłowej, halach produkcyjnych, magazynach i BIM.</p>
 
-Ekspercka wiedza o architekturze przemysłowej, halach produkcyjnych i BIM.
+<div class="kategorie-nav" id="kategorie-filter">
+  <button class="kategoria-link active" data-filter="all">Wszystkie</button>
+  <button class="kategoria-link" data-filter="flow">Przepływ technologiczny</button>
+  <button class="kategoria-link" data-filter="BIM">BIM</button>
+  <button class="kategoria-link" data-filter="logistyka">Logistyka</button>
+  <button class="kategoria-link" data-filter="technologia">Technologia</button>
+  <button class="kategoria-link" data-filter="koordynacja">Koordynacja</button>
+</div>
 
-{{ wiedza_karty_index() }}
+{{ wiedza_karty(from_index=True) }}
 
-<p style="text-align: center; margin-top: 1.5rem;">
-  <a href="wiedza/" class="btn btn-outline">Zobacz wszystkie artykuły</a>
+<p style="text-align: center;">
+  <a href="wiedza/" class="kategoria-link wiedza-back">Zobacz wszystkie artykuły</a>
 </p>
 
+</div>
 </section>
 
 ---
 
-<section id="onas">
+<section id="onas" class="onas-section">
 
-## O nas
+<div class="onas-intro">
+  <div class="onas-block">
+    <p><strong>Industry Architecture iABIM</strong> łączy projektowanie architektoniczne z technologią informacji o budynku, wspierając zespoły projektowe w <strong>transformacji procesów pracy na model BIM</strong>. Skupiamy się na dostarczaniu rozwiązań zwiększających przewidywalność, transparentność oraz tempo realizacji projektów budowlanych.</p>
+  </div>
 
-<!-- Blok desktop -->
-<div class="onas-desktop">
-  <table style="width:100%; border-collapse:collapse; border:none;">
-    <tr>
-      <td style="width:66%; vertical-align:top; border:none; padding-right:2rem;">
-        <h3>Specjalizacja</h3>
-        <p><strong>Industry Architecture iABIM</strong> specjalizuje się w dokumentacji BIM dla branży architektoniczno-budowlanej.</p>
-        <p>Pracujemy w obszarach <strong>OpenBim, IFC</strong>, specjalizujemy się w środowisku <strong>Autodesk Revit</strong> oraz zintegrowanych środowiskach <strong>CDE</strong>. Znamy dobrze standard <strong>ISO 19650</strong>.</p>
-        <h3>Historia</h3>
-        <p>Początki działalności sięgają roku 2009. W 2025 roku powstała marka <strong>Industry Architecture iABIM</strong>, której misją jest łączenie wiedzy architektonicznej z nowoczesnymi standardami BIM.</p>
-      </td>
-      <td style="width:34%; text-align:center; vertical-align:middle; border:none;">
-        <img src="img/o_nas/image_1.jpg" alt="Industry Architecture iABIM" style="max-width:100%; border-radius:258px;">
-      </td>
-    </tr>
-  </table>
+  <div class="onas-divider"></div>
+
+  <div class="onas-block">
+    <p>Tworzymy środowisko pracy oparte na <strong>inteligentnym zarządzaniu informacją projektową</strong>, automatyzacji dokumentacji oraz koordynacji międzybranżowej. Wykorzystujemy standardy <strong>OpenBIM</strong>, nowoczesne narzędzia parametryczne oraz metody optymalizacji procesów publikacji danych projektowych.</p>
+  </div>
+
+  <div class="onas-divider"></div>
+
+  <div class="onas-block">
+    <p>Naszym celem jest <strong>redukcja kosztów ukrytych</strong> wynikających z powielania pracy, błędów komunikacyjnych i niespójności modeli projektowych. Wspieramy biura projektowe, wykonawców oraz inwestorów w prowadzeniu projektów zgodnie z międzynarodowymi standardami jakości informacji budowlanej.</p>
+  </div>
 </div>
 
-<div class="onas-mobile">
-  <h3>Specjalizacja</h3>
-  <p><strong>Industry Architecture iABIM</strong> specjalizuje się w dokumentacji BIM dla branży architektoniczno-budowlanej.</p>
-  <img src="img/o_nas/image_1.jpg" alt="Industry Architecture iABIM" style="max-width:100%; border-radius:258px; margin: 1rem 0;">
-  <p>Pracujemy w obszarach <strong>OpenBim, IFC</strong>, specjalizujemy się w środowisku <strong>Autodesk Revit</strong> oraz zintegrowanych środowiskach <strong>CDE</strong>.</p>
+<div class="onas-zespol">
+  <h3>Zespół</h3>
+  <div class="onas-zespol-grid">
+    <div class="onas-osoba">
+      <h4>Piotr Choromański</h4>
+      <p class="rola">Architekt / BIM Lead</p>
+      <p>Specjalizuje się w dokumentacji architektonicznej oraz wdrażaniu standardów BIM.</p>
+    </div>
+    <div class="onas-osoba">
+      <h4>Małgorzata Choromańska</h4>
+      <p class="rola">Idea / Concept / Script Specialist</p>
+      <p>Tworzy wizję firmy i narzędzia automatyzujące pracę w Revit i pyRevit.</p>
+    </div>
+  </div>
 </div>
 
----
-
-### Zespół
-
-<div class="onas-desktop">
-  <table style="width:100%; border-collapse:collapse; border:none;">
-    <tr>
-      <td style="width:50%; vertical-align:top; border:none; padding:1rem;">
-        <table style="width:100%; border:none;">
-          <tr>
-            <td style="width:60%; vertical-align:top; border:none; padding-right:1rem;">
-              <h4>Piotr Choromański</h4>
-              <p><em>Architekt / BIM Lead</em></p>
-              <p>Specjalizuje się w dokumentacji architektonicznej oraz wdrażaniu standardów BIM.</p>
-            </td>
-            <td style="width:40%; vertical-align:middle; border:none; text-align:center;">
-              <img src="img/_zespol/osoba1.jpg" alt="Piotr Choromański" style="max-width:100%; border-radius:20px;">
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td style="width:50%; vertical-align:top; border:none; padding:1rem;">
-        <table style="width:100%; border:none;">
-          <tr>
-            <td style="width:60%; vertical-align:top; border:none; padding-right:1rem;">
-              <h4>Małgorzata Choromańska</h4>
-              <p><em>Idea / Concept / Script Specialist</em></p>
-              <p>Tworzy wizję firmy i narzędzia automatyzujące pracę w Revit i pyRevit.</p>
-            </td>
-            <td style="width:40%; vertical-align:middle; border:none; text-align:center;">
-              <img src="img/_zespol/osoba2.jpg" alt="Małgorzata Choromańska" style="max-width:100%; border-radius:20px;">
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<div class="onas-mobile">
-  <h4>Piotr Choromański</h4>
-  <p><em>Architekt / BIM Lead</em></p>
-  <img src="img/_zespol/osoba1.jpg" alt="Piotr Choromański" style="width:70%; border-radius:20px; margin:0.5rem 0;">
-  <p>Specjalizuje się w dokumentacji architektonicznej oraz wdrażaniu standardów BIM.</p>
-
-  <h4>Małgorzata Choromańska</h4>
-  <p><em>Idea / Concept / Script Specialist</em></p>
-  <img src="img/_zespol/osoba2.jpg" alt="Małgorzata Choromańska" style="width:70%; border-radius:20px; margin:0.5rem 0;">
-  <p>Tworzy wizję firmy i narzędzia automatyzujące pracę w Revit i pyRevit.</p>
-</div>
-
----
-
-### Kontakt
-
-<div class="contact-grid">
-  <div class="contact-info">
-    <h4>Dane kontaktowe</h4>
-    <p><strong>Biuro</strong><br>
-    ul. Stelmachów 58b/3<br>
-    31-234 Kraków</p>
-    <p><strong>E-mail</strong><br>
-    <a href="mailto:kontakt@iabim.eu">kontakt@iabim.eu</a></p>
-    <p><strong>Telefon</strong><br>
+<div class="onas-kontakt">
+  <div class="onas-kontakt-blok">
+    <h4>Kontakt</h4>
+    <p>ul. Stelmachów 58b/3<br>31-234 Kraków</p>
+    <p><a href="mailto:piotrekchoromanski@gmail.com">piotrekchoromanski@gmail.com</a><br>
     <a href="tel:+48785195173">+48 785 195 173</a></p>
   </div>
-  <div class="contact-info">
+  <div class="onas-kontakt-blok">
     <h4>Dane firmowe</h4>
-    <p><strong>Industry Architecture iABIM</strong><br>
-    Stelmachów 58b/3<br>
-    31-234 Kraków</p>
-    <p><strong>NIP:</strong> 657-215-74-73<br>
-    <strong>REGON:</strong> 021040055</p>
+    <p> Pracownia architektoniczna iA BIM<br>
+    NIP: 657-215-74-73<br>
+    REGON: 021040055</p>
+    <p><a href="polityka-prywatnosci/">Polityka prywatności</a></p>
   </div>
 </div>
-
-<div class="cta-section">
-  <h2>Napisz do nas</h2>
-  <p>Chętnie odpowiemy na pytania dotyczące dokumentacji BIM, koordynacji czy automatyzacji.</p>
-  <a href="mailto:kontakt@iabim.eu" class="btn btn-primary">kontakt@iabim.eu</a>
-</div>
-
-<p style="font-size: smaller; text-align: right;">
-<a href="polityka-prywatnosci/">Polityka prywatności</a>
-</p>
 
 </section>

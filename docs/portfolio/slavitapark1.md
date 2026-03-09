@@ -1,26 +1,30 @@
 ---
 name: "Slavita Park"
 type: "Budynek wielorodzinny"
-area: "3890m3"
+area: "3890 m²"
 stage: "Realizacja"
 ---
 
 # Slavita Park
 
 <div class="project-hero">
-  <a href="../../img/portfolio/slavitapark1/1.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-    <img src="../../img/portfolio/slavitapark1/1.jpg" alt="Slavita Park">
+  <a href="../../img/portfolio/slavitapark1/000_3905f8_eb7b_xbig.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
+    <img src="../../img/portfolio/slavitapark1/000_3905f8_eb7b_xbig.jpg" alt="Slavita Park">
   </a>
 </div>
 
 <div class="project-meta">
+  <div class="meta-item">
+    <strong>Klient</strong>
+    <span><b>	IG APARTMENTS</b></span>
+  </div>
   <div class="meta-item">
     <strong>Typ</strong>
     <span>Budynek wielorodzinny</span>
   </div>
   <div class="meta-item">
     <strong>Powierzchnia</strong>
-    <span>3890m3</span>
+    <span>3890 m²</span>
   </div>
   <div class="meta-item">
     <strong>Stadium</strong>
@@ -34,68 +38,57 @@ stage: "Realizacja"
     <strong>Realizacja</strong>
     <span>2021</span>
   </div>
+  <div class="meta-item">
+    <strong>Wykonawca</strong>
+    <span><b>	IG APARTMENTS</b></span>
+  </div>
 </div>
 
 ---
 
 ## O projekcie
 
-Wielofunkcyjny budynek usługowy zlokalizowany w centrum Krakowa. Projekt obejmuje przestrzeń gastronomiczną na parterze, biura na wyższych kondygnacjach oraz lokale handlowe. Zastosowano nowoczesne rozwiązania energooszczędne i wysoki standard wykończenia.
+Wielokondygnacyjny budynek mieszkalny zlokalizowany w ścisłym centrum Kudowy-Zdrój, zaprojektowany jako zwarta, współczesna bryła o zróżnicowanej wysokości i czytelnym rytmie elewacji. Obiekt mieści 72 apartamenty o zróżnicowanej powierzchni – od 45 m² do 145 m², w tym dwupoziomowe apartamenty z tarasami zlokalizowanymi na najwyższej kondygnacji na dachu budynku. Projekt akcentuje poziome podziały balkonów i loggii, a zastosowane przeszklenia i stonowana kolorystyka elewacji pozwalają na harmonijne wpisanie obiektu w kontekst uzdrowiskowego otoczenia. Integralną częścią inwestycji jest podziemny parking dla mieszkańców, zapewniający obsługę komunikacyjną bez ingerencji w strefę parteru. Sylwetka budynku została ukształtowana tak, aby eksponować strefę tarasów dachowych jako charakterystyczny element kompozycyjny obiektu.
 
-## Zakres prac BIM
+## Zakres prac pracowni IA
 
-- Model architektoniczny LOD351
+- Projekt koncepcyjny
+- Projekt budowlany
+- Koordynacja międzybranzowa
+- LOD350
 
 
 ## Galeria
 
 <div class="gallery">
   <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/1.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/1.jpg" alt="1">
-      <figcaption>1</figcaption>
+    <a href="../../img/portfolio/slavitapark1/000_3905f8_eb7b_xbig.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
+      <img src="../../img/portfolio/slavitapark1/000_3905f8_eb7b_xbig.jpg" alt="000 3905F8 Eb7B Xbig">
+      <figcaption>000 3905F8 Eb7B Xbig</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/2.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/2.jpg" alt="2">
-      <figcaption>2</figcaption>
+    <a href="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-2672625.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
+      <img src="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-2672625.jpg" alt="Apartamenty Polanica Apartamentowiec Hotel 2672625">
+      <figcaption>Apartamenty Polanica Apartamentowiec Hotel 2672625</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/FINALNE_1 - Photo.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/FINALNE_1 - Photo.jpg" alt="Finalne 1   Photo">
-      <figcaption>Finalne 1   Photo</figcaption>
+    <a href="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-3185455.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
+      <img src="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-3185455.jpg" alt="Apartamenty Polanica Apartamentowiec Hotel 3185455">
+      <figcaption>Apartamenty Polanica Apartamentowiec Hotel 3185455</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/FINALNE_2 - Zdjęcie.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/FINALNE_2 - Zdjęcie.jpg" alt="Finalne 2   Zdjęcie">
-      <figcaption>Finalne 2   Zdjęcie</figcaption>
+    <a href="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-4671415.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
+      <img src="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-4671415.jpg" alt="Apartamenty Polanica Apartamentowiec Hotel 4671415">
+      <figcaption>Apartamenty Polanica Apartamentowiec Hotel 4671415</figcaption>
     </a>
   </figure>
   <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/FINALNE_3 - Zdjęcie.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/FINALNE_3 - Zdjęcie.jpg" alt="Finalne 3   Zdjęcie">
-      <figcaption>Finalne 3   Zdjęcie</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/FINALNE_4 - Zdjęcie.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/FINALNE_4 - Zdjęcie.jpg" alt="Finalne 4   Zdjęcie">
-      <figcaption>Finalne 4   Zdjęcie</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/FINALNE_5 - Zdjęcie.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/FINALNE_5 - Zdjęcie.jpg" alt="Finalne 5   Zdjęcie">
-      <figcaption>Finalne 5   Zdjęcie</figcaption>
-    </a>
-  </figure>
-  <figure class="gallery-item">
-    <a href="../../img/portfolio/slavitapark1/FINALNE_6 - Zdjęcie.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
-      <img src="../../img/portfolio/slavitapark1/FINALNE_6 - Zdjęcie.jpg" alt="Finalne 6   Zdjęcie">
-      <figcaption>Finalne 6   Zdjęcie</figcaption>
+    <a href="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-668956.jpg" class="glightbox" data-gallery="portfolio-slavitapark1">
+      <img src="../../img/portfolio/slavitapark1/apartamenty-polanica-apartamentowiec-hotel-668956.jpg" alt="Apartamenty Polanica Apartamentowiec Hotel 668956">
+      <figcaption>Apartamenty Polanica Apartamentowiec Hotel 668956</figcaption>
     </a>
   </figure>
 </div>
@@ -103,5 +96,5 @@ Wielofunkcyjny budynek usługowy zlokalizowany w centrum Krakowa. Projekt obejmu
 ---
 
 <p style="text-align: center; margin-top: 2rem;">
-  <a href="../" class="btn btn-outline">Powrót do portfolio</a>
+  <a href="../" class="kategoria-link wiedza-back">Powrót do portfolio</a>
 </p>
