@@ -457,8 +457,8 @@ html {
 
 .project-meta {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.75rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
   margin: 0.3rem 0;
   padding: 0.6rem;
   background: #f5f5f5;
@@ -1078,9 +1078,6 @@ html {
   align-items: center;
   text-align: center;
   padding: 3rem 2rem;
-  background: #f5f5f5;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
 }
 
 .portfolio-section h2 {
