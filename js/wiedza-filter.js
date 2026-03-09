@@ -46,6 +46,9 @@ function initPortfolioFilter() {
       buttons.forEach(b => b.classList.remove('active'));
       this.classList.add('active');
 
+      // Przy filtrowaniu wyłącz limit nth-child
+      grid.classList.toggle('expanded', filter !== 'all');
+
       // Filtruj karty
       cards.forEach(card => {
         if (filter === 'all' || card.dataset.typ === filter) {
