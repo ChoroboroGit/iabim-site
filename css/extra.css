@@ -816,7 +816,9 @@ a.kategoria-link.wiedza-back:hover {
   color: #fff !important;
 }
 
-.oferta-detail .wiedza-back:hover {
+.oferta-detail .wiedza-back:hover,
+.oferta-detail a.wiedza-back:hover,
+.oferta-detail a.kategoria-link.wiedza-back:hover {
   background: white !important;
   border-color: white !important;
   color: #37474f !important;
