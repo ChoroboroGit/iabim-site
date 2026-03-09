@@ -457,8 +457,8 @@ html {
 
 .project-meta {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
   margin: 0.3rem 0;
   padding: 0.6rem;
   background: #f5f5f5;
@@ -483,6 +483,10 @@ html {
   font-size: 0.7rem;
   color: #37474f;
   font-weight: 500;
+}
+
+.meta-item span b {
+  font-weight: 700;
 }
 
 /* Project page typography */
@@ -786,6 +790,36 @@ html {
   color: white;
 }
 
+.wiedza-back,
+a.wiedza-back:link,
+a.wiedza-back:visited {
+  background: rgba(55, 71, 79, 0.1) !important;
+  border: 1px solid rgba(55, 71, 79, 0.3) !important;
+  color: #37474f !important;
+}
+
+.wiedza-back:hover {
+  background: #37474f !important;
+  border-color: #37474f !important;
+  color: white !important;
+  cursor: pointer;
+}
+
+.oferta-detail .kategoria-link.wiedza-back,
+.oferta-detail .kategoria-link.wiedza-back:link,
+.oferta-detail .kategoria-link.wiedza-back:visited,
+.oferta-detail a.wiedza-back {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+}
+
+.oferta-detail .wiedza-back:hover {
+  background: white !important;
+  border-color: white !important;
+  color: #37474f !important;
+}
+
 /* Powiązane artykuły */
 .wiedza-powiazane {
   margin-top: 2rem;
@@ -1085,6 +1119,12 @@ html {
   font-size: 1.4rem;
   font-weight: 600;
   margin: 0 0 2rem 0;
+}
+
+.portfolio-section .wiedza-back:hover {
+  background: #37474f !important;
+  border-color: #37474f !important;
+  color: white !important;
 }
 
 @media screen and (max-width: 600px) {
