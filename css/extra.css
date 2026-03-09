@@ -798,7 +798,9 @@ a.wiedza-back:visited {
   color: #37474f !important;
 }
 
-.wiedza-back:hover {
+.wiedza-back:hover,
+a.wiedza-back:hover,
+a.kategoria-link.wiedza-back:hover {
   background: #37474f !important;
   border-color: #37474f !important;
   color: white !important;
