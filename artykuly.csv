@@ -1,11 +1,11 @@
-slug,title,description,keywords,category,problem,status,priority,created,updated
-hala-produkcyjna-projektowanie,Projektowanie hal produkcyjnych,Kluczowe aspekty projektowania nowoczesnych hal produkcyjnych z uwzględnieniem BIM i przepływu technologicznego.,hala produkcyjna BIM projektowanie przemysłowe,Hale produkcyjne,flow,draft,1,2025-01-15,2025-01-15
-logistyka-wewnetrzna-hali,Logistyka wewnętrzna hali produkcyjnej,Jak zaplanować przepływ materiałów i produktów w hali produkcyjnej.,logistyka hala przepływ materiałów,Hale produkcyjne,flow,draft,2,2025-01-20,2025-01-20
-bim-lod-przemysl,LOD w projektach przemysłowych,Poziomy szczegółowości modeli BIM dla hal i magazynów.,BIM LOD przemysł modelowanie,BIM,BIM,draft,3,2025-01-25,2025-01-25
-koordynacja-branzowa,Koordynacja branżowa w halach,Jak skutecznie koordynować branże w dużych obiektach przemysłowych.,koordynacja kolizje BIM Navisworks,Koordynacja,koordynacja,draft,4,2025-01-28,2025-01-28
-magazyn-automatyka,Automatyka magazynowa,Systemy automatyki w nowoczesnych magazynach wysokiego składowania.,automatyka magazyn regały,Technologia,technologia,draft,5,2025-02-01,2025-02-01
-transport-wewnetrzny,Transport wewnętrzny w zakładzie,Optymalizacja tras transportu wewnętrznego w zakładach produkcyjnych.,transport logistyka AGV wózki,Logistyka,logistyka,draft,6,2025-02-05,2025-02-05
-ifc-eksport-revit,Eksport IFC z Revit,Jak poprawnie eksportować modele IFC z Autodesk Revit dla projektów przemysłowych.,IFC Revit eksport OpenBIM,BIM,BIM,draft,7,2025-02-10,2026-03-05
-koordynacja-mep-hale,Koordynacja MEP w halach,Filtr kolizji MEP i komunikacja z zespołem projektowym.,MEP koordynacja kolizje instalacje,BIM,koordynacja,draft,8,2025-03-05,2026-03-05
-wentylacja-hale-przemyslowe,Wentylacja hal przemysłowych,Projektowanie systemów wentylacji dla obiektów produkcyjnych.,wentylacja HVAC hale przemysł,Technologia,technologia,draft,9,2025-03-05,2026-03-05
-test-losowanie-szablonu,Test losowania szablonu,Artykuł testowy do weryfikacji randomizacji szablonów generatora,test szablon generator,Test,technologia,draft,1,2026-03-06,2026-03-06
+﻿slug;title;description;keywords;category;problem;status;priority;created;updated
+hala-produkcyjna-projektowanie;Projektowanie hal produkcyjnych;Kluczowe aspekty projektowania nowoczesnych hal produkcyjnych z uwzględnieniem BIM i przepływu technologicznego.;hala produkcyjna BIM projektowanie przemysłowe;Hale produkcyjne;flow;draft;1;15.01.2025;15.01.2025
+logistyka-wewnetrzna-hali;Logistyka wewnętrzna hali produkcyjnej;Jak zaplanować przepływ materiałów i produktów w hali produkcyjnej.;logistyka hala przepływ materiałów;Hale produkcyjne;flow;draft;2;20.01.2025;20.01.2025
+bim-lod-przemysl;LOD w projektach przemysłowych;Poziomy szczegółowości modeli BIM dla hal i magazynów.;BIM LOD przemysł modelowanie;BIM;BIM;draft;3;25.01.2025;25.01.2025
+koordynacja-branzowa;Koordynacja branżowa w halach;Jak skutecznie koordynować branże w dużych obiektach przemysłowych.;koordynacja kolizje BIM Navisworks;Koordynacja;koordynacja;draft;4;28.01.2025;28.01.2025
+magazyn-automatyka;Automatyka magazynowa;Systemy automatyki w nowoczesnych magazynach wysokiego składowania.;automatyka magazyn regały;Technologia;technologia;draft;5;01.02.2025;01.02.2025
+transport-wewnetrzny;Transport wewnętrzny w zakładzie;Optymalizacja tras transportu wewnętrznego w zakładach produkcyjnych.;transport logistyka AGV wózki;Logistyka;logistyka;draft;6;05.02.2025;05.02.2025
+ifc-eksport-revit;Eksport IFC z Revit;Jak poprawnie eksportować modele IFC z Autodesk Revit dla projektów przemysłowych.;IFC Revit eksport OpenBIM;BIM;BIM;draft;7;10.02.2025;05.03.2026
+koordynacja-mep-hale;Koordynacja MEP w halach;Filtr kolizji MEP i komunikacja z zespołem projektowym.;MEP koordynacja kolizje instalacje;BIM;koordynacja;draft;8;05.03.2025;05.03.2026
+wentylacja-hale-przemyslowe;Wentylacja hal przemysłowych;Projektowanie systemów wentylacji dla obiektów produkcyjnych.;wentylacja HVAC hale przemysł;Technologia;technologia;draft;9;05.03.2025;05.03.2026
+remont-posadzki-przemyslowej;Remont istniejącej posadzki w zakładzie przemysłowym;Proces diagnostyki, naprawy i modernizacji posadzki przemysłowej z uwzględnieniem obciążeń technologicznych, dylatacji oraz systemów żywicznych.;remont posadzki przemysłowej naprawa posadzki betonowej posadzki żywiczne przemysł;Hale produkcyjne;technologia;draft;2;10.03.2026;10.03.2026
