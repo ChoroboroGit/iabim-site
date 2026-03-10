@@ -338,11 +338,17 @@ ZDJĘCIA W TREŚCI:
 - Zmień opis i numer pliku
 - Wrzuć zdjęcia do: docs/img/wiedza/SLUG/
 - Kompresja automatyczna przy renderze strony
+- Rozmiar: ![opis](img.jpg){ width="500" } lub { width="50%" }
 
 DIAGRAMY (tylko szablony B i C):
 - Edytuj tekst w bloku mermaid
 - Zmień placeholdery: KROK 1, WYZWANIE, itd.
 - Podgląd: https://mermaid.live
+
+BLOKI WYRÓŻNIONE (admonitions):
+- !!! note/tip/warning/danger/info/example "Tytuł"
+- Treść z wcięciem 4 spacji (zaznacz + Tab)
+- ??? = zwijane, ???+ = rozwinięte domyślnie
 
 STRUKTURA:
 - Wypełnij sekcje oznaczone [w nawiasach kwadratowych]
@@ -354,12 +360,19 @@ STATUS W CSV:
 - draft = w edycji (niewidoczny na stronie)
 - published = widoczny na stronie
 
+PODGLĄD LOKALNY (tylko published):
+python -m mkdocs serve
+
+PODGLĄD Z DRAFTAMI (Windows):
+set SHOW_DRAFTS=1 && python -m mkdocs serve
+
 DEPLOY:
 python -m mkdocs gh-deploy --clean --force
 ================================================================================
 -->
 
 <h1 id="remont-istniejacej-posadzki-w-zakadzie-przemysowym">Remont istniejącej posadzki w zakładzie przemysłowym</h1>
+<p><img src="/img/wiedza/remont-posadzki-przemyslowej/hero.jpg" alt="" class="article-hero"></p>
 <p><strong>Proces diagnostyki, naprawy i modernizacji posadzki przemysłowej z uwzględnieniem obciążeń technologicznych, dylatacji oraz systemów żywicznych.</strong></p>
 <p>Dowiedz się, jak podejść do tego zagadnienia w kontekście projektowania obiektów przemysłowych.</p>
 <hr />
@@ -368,7 +381,30 @@ python -m mkdocs gh-deploy --clean --force
 <h2 id="kontekst-przemysowy">Kontekst przemysłowy</h2>
 <p>W zakładach przemysłowych posadzka pełni funkcję elementu konstrukcyjnego i technologicznego jednocześnie. Musi przenosić duże obciążenia statyczne i dynamiczne, umożliwiać bezpieczny transport wewnętrzny oraz spełniać wymagania dotyczące odporności na ścieranie, środki chemiczne lub temperaturę. Modernizacja posadzki często odbywa się w działającym obiekcie produkcyjnym, co wymaga etapowania prac, odpowiedniego planowania logistyki oraz minimalizacji wpływu robót na ciągłość produkcji.</p>
 <h2 id="podejscie-projektowe">Podejście projektowe</h2>
-<p>Rekomendowane podejście do remontu posadzki przemysłowej opiera się na szczegółowej diagnostyce technicznej istniejącej płyty, analizie obciążeń eksploatacyjnych oraz dobraniu technologii naprawy dostosowanej do rzeczywistego stanu konstrukcji. W zależności od zakresu uszkodzeń stosuje się naprawy punktowe, wzmocnienie powierzchni warstwą żywiczną, rekonstrukcję dylatacji lub wykonanie nowej warstwy użytkowej.</p>
+<p>Rekomendowane podejście do remontu posadzki przemysłowej powinno opierać się na szczegółowej diagnostyce technicznej istniejącej płyty oraz analizie warunków jej dalszej eksploatacji. Kluczowe jest nie tylko rozpoznanie aktualnego stanu technicznego betonu i podłoża, ale również określenie rzeczywistych obciążeń, jakim posadzka będzie poddawana w trakcie użytkowania po remoncie. Na tej podstawie dobiera się technologię naprawy, zakres wzmocnienia konstrukcji oraz typ warstwy użytkowej.</p>
+<p>W analizie projektowej warto rozdzielić dwa zasadnicze obszary: wymagania konstrukcyjne związane z przenoszeniem obciążeń oraz wymagania eksploatacyjne dotyczące powierzchni użytkowej posadzki.</p>
+<h3 id="wymagania-konstrukcyjne-statyka-i-nosnosc">Wymagania konstrukcyjne (statyka i nośność)</h3>
+<div class="admonition warning">
+<p class="admonition-title">Uwaga</p>
+<p>Pierwszym krokiem jest ocena zdolności istniejącej płyty do przenoszenia obciążeń. Dotyczy to zarówno obciążeń stałych, jak i zmiennych pojawiających się w trakcie użytkowania obiektu. W szczególności należy rozpoznać:</p>
+<ul>
+<li>obciążenia od składowania materiałów i regałów magazynowych,  </li>
+<li>obciążenia od maszyn technologicznych oraz ich fundamentów,  </li>
+<li>obciążenia dynamiczne związane z ruchem wózków widłowych lub transportu wewnętrznego,  </li>
+<li>lokalne przeciążenia punktowe (np. podpory urządzeń, koła maszyn).</li>
+</ul>
+</div>
+<p>Na podstawie tych informacji ocenia się, czy istniejąca płyta może pozostać w eksploatacji po naprawie powierzchniowej, czy też konieczne jest jej wzmocnienie, wykonanie nadbetonu lub lokalna rekonstrukcja fragmentów posadzki.</p>
+<h3 id="wymagania-eksploatacyjne-warstwa-uzytkowa">Wymagania eksploatacyjne (warstwa użytkowa)</h3>
+<p>Drugim obszarem analizy jest dobór odpowiedniej warstwy użytkowej posadzki, która musi być dostosowana do warunków środowiskowych i sposobu użytkowania hali. W praktyce należy uwzględnić m.in.:</p>
+<ul>
+<li>intensywność ruchu transportowego i wymagania dotyczące odporności na ścieranie,  </li>
+<li>oddziaływanie substancji chemicznych (oleje, smary, kwasy, środki czyszczące),  </li>
+<li>możliwość występowania środowiska agresywnego lub wilgotnego,  </li>
+<li>wymagania higieniczne lub technologiczne (np. łatwość czyszczenia, ograniczenie pylenia),  </li>
+<li>wymagania dotyczące antypoślizgowości lub właściwości elektrostatycznych.</li>
+</ul>
+<p>Dopiero zestawienie wymagań konstrukcyjnych z wymaganiami eksploatacyjnymi pozwala dobrać właściwą technologię naprawy – od napraw punktowych i reprofilacji powierzchni, przez wykonanie nowych powłok żywicznych, aż po wykonanie nowych warstw użytkowych o podwyższonej odporności mechanicznej i chemicznej.</p>
 <h3 id="kluczowe-zaozenia">Kluczowe założenia</h3>
 <ul>
 <li>Remont powinien być poprzedzony szczegółową ekspertyzą techniczną i badaniami podłoża.</li>
@@ -381,12 +417,16 @@ python -m mkdocs gh-deploy --clean --force
 <li>Opracowanie projektu technologii naprawy wraz z doborem materiałów i etapowaniem prac w funkcjonującym obiekcie.  </li>
 <li>Wykonanie prac naprawczych obejmujących naprawę pęknięć, rekonstrukcję dylatacji, reprofilację powierzchni oraz ewentualne wykonanie nowej warstwy użytkowej.</li>
 </ol>
+<p><img alt="Naprawa dylatacji" src="../../img/wiedza/remont-posadzki-przemyslowej/01.jpg" width="50%" /></p>
 <h2 id="typowe-bedy">Typowe błędy</h2>
+<div class="admonition danger">
+<p class="admonition-title">WAŻNE</p>
 <ul>
 <li><strong>Naprawa bez wcześniejszej diagnostyki</strong> — prowadzi do usunięcia jedynie objawów uszkodzeń, bez eliminacji ich przyczyn, co skutkuje szybkim powrotem problemów.  </li>
 <li><strong>Niedostosowanie technologii do obciążeń eksploatacyjnych</strong> — zbyt słaba warstwa naprawcza ulega ponownemu zniszczeniu pod wpływem ruchu transportowego lub obciążeń punktowych.  </li>
 <li><strong>Ignorowanie dylatacji konstrukcyjnych</strong> — nieprawidłowa naprawa lub ich zasłonięcie powoduje powstawanie nowych spękań i degradację posadzki.</li>
 </ul>
+</div>
 <h2 id="wnioski-dla-inwestora">Wnioski dla inwestora</h2>
 <p>Remont posadzki przemysłowej powinien być traktowany jako projekt inżynierski wymagający analizy technicznej oraz właściwego planowania technologii robót. Odpowiednie przygotowanie procesu naprawy pozwala znacząco wydłużyć okres eksploatacji posadzki oraz ograniczyć koszty przyszłych napraw.</p>
 <h3 id="korzysci">Korzyści</h3>
@@ -396,7 +436,7 @@ python -m mkdocs gh-deploy --clean --force
 <li>Poprawa parametrów użytkowych posadzki, w tym odporności na ścieranie i obciążenia transportowe.</li>
 </ul>
 <!-- ZDJĘCIA - odkomentuj i użyj gdzie potrzebujesz w artykule -->
-<!-- ![Opis zdjęcia](../img/wiedza/remont-posadzki-przemyslowej/01.jpg) -->
+<!-- ![Naprawa dylatacji](../img/wiedza/remont-posadzki-przemyslowej/01.jpg) -->
 <!-- ![Opis zdjęcia](../img/wiedza/remont-posadzki-przemyslowej/02.jpg) -->
 <!-- ![Opis zdjęcia](../img/wiedza/remont-posadzki-przemyslowej/03.jpg) -->
 
