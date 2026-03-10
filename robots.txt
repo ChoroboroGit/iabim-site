@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://iabim.eu/sitemap.xml
+Sitemap: https://iabim.eu/sitemap-services.xml
