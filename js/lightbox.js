@@ -18,6 +18,14 @@ function initGLightbox() {
 // Automatyczne podpisy pod obrazkami (z alt)
 function addImageCaptions() {
   document.querySelectorAll('article img[alt]').forEach(function(img) {
+    // Pomijaj hero, miniaturki i karty
+    if (img.classList.contains('article-hero') ||
+        img.classList.contains('wiedza-hero') ||
+        img.closest('.wiedza-card') ||
+        img.closest('.portfolio-card') ||
+        img.closest('.project-hero')) {
+      return;
+    }
     if (img.alt && img.alt.trim() !== '' && !img.closest('figure')) {
       var figure = document.createElement('figure');
       var figcaption = document.createElement('figcaption');
