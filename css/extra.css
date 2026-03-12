@@ -1449,3 +1449,22 @@ a.kategoria-link.wiedza-back:hover {
 
 .md-typeset .admonition.quote .admonition-title { background: rgba(var(--adm-quote), 0.15); }
 .md-typeset .admonition.quote { border-color: rgb(var(--adm-quote)); background: rgba(var(--adm-quote), 0.08); }
+
+/* --- Podpisy pod obrazkami --- */
+article figure {
+  margin: 1em 0;
+  text-align: center;
+}
+
+article figure img {
+  max-width: 100%;
+  height: auto;
+}
+
+article figcaption {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+  margin-top: 0.5em;
+  padding: 0 1em;
+}
