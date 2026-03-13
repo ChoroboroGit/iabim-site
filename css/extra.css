@@ -1468,3 +1468,10 @@ article figcaption {
   margin-top: 0.5em;
   padding: 0 1em;
 }
+
+/* --- Responsywne kolumny w artykułach (mobile) --- */
+@media screen and (max-width: 768px) {
+  article div[style*="display:flex"] {
+    flex-direction: column !important;
+  }
+}
