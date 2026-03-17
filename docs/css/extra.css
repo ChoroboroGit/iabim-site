@@ -718,7 +718,7 @@ html {
 
 .wiedza-info p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   color: var(--md-default-fg-color--light);
   line-height: 1.4;
 }
@@ -1415,5 +1415,63 @@ a.kategoria-link.wiedza-back:hover {
   }
   .oferta-detail .oferta-lead {
     font-size: 0.9rem;
+  }
+}
+
+/* --- Admonitions (chłodna paleta blue-grey) --- */
+:root {
+  --adm-note: 96, 125, 139;      /* #607d8b - średni */
+  --adm-tip: 84, 110, 122;       /* #546e7a - ciemniejszy */
+  --adm-info: 120, 144, 156;     /* #78909c - jasny */
+  --adm-warning: 69, 90, 100;    /* #455a64 - ciemny */
+  --adm-danger: 55, 71, 79;      /* #37474f - najciemniejszy */
+  --adm-example: 144, 164, 174;  /* #90a4ae - bardzo jasny */
+  --adm-quote: 176, 190, 197;    /* #b0bec5 - najjaśniejszy */
+}
+
+.md-typeset .admonition.note .admonition-title { background: rgba(var(--adm-note), 0.15); }
+.md-typeset .admonition.note { border-color: rgb(var(--adm-note)); background: rgba(var(--adm-note), 0.08); }
+
+.md-typeset .admonition.tip .admonition-title { background: rgba(var(--adm-tip), 0.15); }
+.md-typeset .admonition.tip { border-color: rgb(var(--adm-tip)); background: rgba(var(--adm-tip), 0.08); }
+
+.md-typeset .admonition.info .admonition-title { background: rgba(var(--adm-info), 0.15); }
+.md-typeset .admonition.info { border-color: rgb(var(--adm-info)); background: rgba(var(--adm-info), 0.08); }
+
+.md-typeset .admonition.warning .admonition-title { background: rgba(var(--adm-warning), 0.18); }
+.md-typeset .admonition.warning { border-color: rgb(var(--adm-warning)); background: rgba(var(--adm-warning), 0.1); }
+
+.md-typeset .admonition.danger .admonition-title { background: rgba(var(--adm-danger), 0.85); color: #fff; }
+.md-typeset .admonition.danger { border-color: rgb(var(--adm-danger)); background: rgba(var(--adm-danger), 0.12); }
+
+.md-typeset .admonition.example .admonition-title { background: rgba(var(--adm-example), 0.15); }
+.md-typeset .admonition.example { border-color: rgb(var(--adm-example)); background: rgba(var(--adm-example), 0.08); }
+
+.md-typeset .admonition.quote .admonition-title { background: rgba(var(--adm-quote), 0.15); }
+.md-typeset .admonition.quote { border-color: rgb(var(--adm-quote)); background: rgba(var(--adm-quote), 0.08); }
+
+/* --- Podpisy pod obrazkami --- */
+article figure {
+  margin: 1em 0;
+  text-align: center;
+}
+
+article figure img {
+  max-width: 100%;
+  height: auto;
+}
+
+article figcaption {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+  margin-top: 0.5em;
+  padding: 0 1em;
+}
+
+/* --- Responsywne kolumny w artykułach (mobile) --- */
+@media screen and (max-width: 768px) {
+  article div[style*="display:flex"] {
+    flex-direction: column !important;
   }
 }

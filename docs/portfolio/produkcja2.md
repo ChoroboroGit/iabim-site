@@ -51,13 +51,15 @@ stage: "Realizacja"
 Obiekt przemysłowy dla branży spożywczej, zaprojektowany zgodnie z wymaganiami sanitarnymi HACCP, o funkcjonalnym i czytelnym układzie przestrzennym. Bryła łączy strefę produkcyjną, magazynową oraz zaplecze biurowo-socjalne. W projekcie zastosowano szatnię przepustową o podwyższonym standardzie higienicznym, umożliwiającą kontrolowany przepływ pracowników pomiędzy strefami technologicznymi. Obiekt uzupełnia przyzakładowa podczyszczalnia ścieków, część mieszkalna dla pracowników pełniących stały nadzór nad produkcją oraz przestrzeń dla obsługi nadzorującej funkcjonowanie zakładu. Całość utrzymano w estetyce współczesnego obiektu przemysłowego o prostej, modułowej formie architektonicznej.
 
 
-**Zespół autorski:** ACI- PROJEKT - konstrukcja, PROINSTAL - instalacje sanitarne,MKJANURA - instalacje elektryczne
+**Zespół autorski:** ACI- PROJEKT - konstrukcja, PROINSTAL - instalacje sanitarne,MKJANURA - instalacje elektryczne  i teletechniczne
 
 ## Zakres prac pracowni IA
 
-- Model konstrukcyjny LOD 300
-- Koordynacja branżowa
-- Dokumentacja powykonawcza
+- BIM management
+- Koncepcja wielobrażowa
+- Projekt budowlany
+- Projekt wykonawczy
+- Kontrola kolizji
 
 
 ## Galeria

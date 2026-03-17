@@ -50,11 +50,15 @@ stage: "Realizacja"
 
 Hala przemysłowa o prostej, funkcjonalnej formie architektonicznej, oparta na geometrycznej bryle z wyraźnie wydzieloną częścią biurowo-socjalną oraz produkcyjną. Elewacje utrzymano w powtarzalnym, modułowym układzie paneli i przeszkleń, zgodnym z rytmem konstrukcji obiektu. Strefa produkcyjna została zaprojektowana jako przestrzeń o dużych rozpiętościach umożliwiających elastyczne zagospodarowanie technologiczne, z bezpośrednim dostępem do stref logistycznych, manewrowych i magazynowych. W obiekcie przewidziano również część magazynową wspierającą procesy produkcyjne, a część biurowo-socjalna została podkreślona większym udziałem przeszklenia i bardziej uporządkowaną kompozycją elewacji. Całość utrzymano w estetyce współczesnego obiektu przemysłowego o wysokiej funkcjonalności operacyjnej.
 
+
+**Zespół autorski:** KOMA - konstrukcja, MKJANURA - instalacje sanitarne, MKJANURA - instalacje elektryczne  i teletechniczne
+
 ## Zakres prac pracowni IA
 
-- Model konstrukcyjny LOD 400
-- Koordynacja branżowa
-- Dokumentacja powykonawcza
+- Projekt budowlany
+- Projekt wykonawczy
+- Projekt powykonawczy
+- LOD350
 
 
 ## Galeria

@@ -50,8 +50,12 @@ stage: "Realizacja"
 
 Wielokondygnacyjny budynek mieszkalny zlokalizowany w ścisłym centrum Kudowy-Zdrój, zaprojektowany jako zwarta, współczesna bryła o zróżnicowanej wysokości i czytelnym rytmie elewacji. Obiekt mieści 72 apartamenty o zróżnicowanej powierzchni – od 45 m² do 145 m², w tym dwupoziomowe apartamenty z tarasami zlokalizowanymi na najwyższej kondygnacji na dachu budynku. Projekt akcentuje poziome podziały balkonów i loggii, a zastosowane przeszklenia i stonowana kolorystyka elewacji pozwalają na harmonijne wpisanie obiektu w kontekst uzdrowiskowego otoczenia. Integralną częścią inwestycji jest podziemny parking dla mieszkańców, zapewniający obsługę komunikacyjną bez ingerencji w strefę parteru. Sylwetka budynku została ukształtowana tak, aby eksponować strefę tarasów dachowych jako charakterystyczny element kompozycyjny obiektu.
 
+
+**Zespół autorski:** RM Projekt - konstrukcja, BILAN - instalacje sanitarne, CORRENTEA- instalacje elektryczne i teletechniczne
+
 ## Zakres prac pracowni IA
 
+- BIM management
 - Projekt koncepcyjny
 - Projekt budowlany
 - Koordynacja międzybranzowa

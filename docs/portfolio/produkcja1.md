@@ -48,13 +48,17 @@ stage: "Koncepcja wielobranżowa"
 
 ## O projekcie
 
-Obiekt przemysłowy dla branży spożywczej wykonany na zlecenie firmy Metroplan Polska, zaprojektowany jako hala produkcyjna o prostej, funkcjonalnej bryle z wyraźnie wydzieloną częścią produkcyjną, magazynową oraz biurowo-socjalną. Koncepcja zakłada realizację muzeum z trasą zwiedzania przebiegającą na różnych poziomach, umożliwiającą obserwację procesu produkcyjnego w przekroju funkcjonalnym obiektu. Kompozycja elewacji opiera się na powtarzalnym rytmie modułów i przeszkleń podkreślających strefy wejściowe i administracyjne, natomiast przestrzeń hali wykazuje dużą elastyczność funkcjonalną. Projekt uwzględnia wymagania branży spożywczej oraz wysokie standardy techniczne, a jednocześnie integruje elementy ekspozycyjne w strukturze przemysłowej bryły.
+Obiekt przemysłowy dla branży spożywczej wykonany na zlecenie firmy Metroplan Polska, zaprojektowany jako hala produkcyjna o prostej, funkcjonalnej bryle z wyraźnie wydzieloną częścią produkcyjną, magazynową oraz biurowo-socjalną. Koncepcja zakłada realizację muzeum z trasą zwiedzania przebiegającą na różnych poziomach, umożliwiającą obserwację procesu produkcyjnego w przekroju funkcjonalnym obiektu. Kompozycja elewacji opiera się na powtarzalnym rytmie modułów i przeszkleń podkreślających strefy wejściowe i administracyjne, natomiast przestrzeń hali wykazuje dużą elastyczność funkcjonalną. Projekt uwzględnia wymagania branży spożywczej oraz wysokie standardy techniczne, a jednocześnie integruje elementy ekspozycyjne w strukturze przemysłowej bryły. Projekt przygotowany wraz z zespołem Metroplan.
+
+
+**Zespół autorski:** BMP - konstrukcja, BMP- instalacje sanitarne, BMP - instalacje elektryczne   i teletechniczne, ARC2 - wtępna koncepcja muzeum
 
 ## Zakres prac pracowni IA
 
-- Model konstrukcyjny LOD 300
+- BIM management
+- Koncepcja wielobrażowa
 - Koordynacja branżowa
-- Dokumentacja powykonawcza
+- Kontrola kolizji
 
 
 ## Galeria

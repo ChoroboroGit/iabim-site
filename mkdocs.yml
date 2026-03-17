@@ -9,6 +9,7 @@ theme:
   name: material
   features:
     - navigation.instant
+    - navigation.instant.prefetch
     - navigation.sections
     - navigation.top
     - content.code.copy
@@ -33,7 +34,9 @@ extra_javascript:
 
 plugins:
   - search
-  - macros
+  - macros:
+      on_error_fail: true
+      on_undefined: keep
 
 markdown_extensions:
   - attr_list
@@ -56,6 +59,16 @@ nav:
   - O nas: /#onas
 
 extra:
+  analytics:
+    provider: google
+    property: G-J7FDJWV784
+  meta:
+    - property: og:type
+      content: website
+    - property: og:site_name
+      content: IABIM
+    - property: og:locale
+      content: pl_PL
   social:
     - icon: fontawesome/solid/envelope
       link: mailto:kontakt@iabim.eu

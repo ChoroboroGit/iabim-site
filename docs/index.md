@@ -1,8 +1,31 @@
 ---
+title: Projektowanie BIM i dokumentacja projektowa | iABIM
 hide:
   - navigation
   - toc
 ---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "IABIM - Industry Architecture BIM",
+  "description": "Dokumentacja BIM dla przemysłu – Revit, IFC, ISO 19650, automatyzacja Python/pyRevit",
+  "url": "https://iabim.eu",
+  "logo": "https://iabim.eu/img/logo.png",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "ul. Stelmachów 58b/3",
+    "addressLocality": "Kraków",
+    "postalCode": "31-234",
+    "addressCountry": "PL"
+  },
+  "telephone": "+48785195173",
+  "email": "piotrekchoromanski@gmail.com",
+  "areaServed": "PL",
+  "serviceType": ["Projektowanie BIM", "Dokumentacja BIM", "Koordynacja międzybranżowa", "Automatyzacja Revit"]
+}
+</script>
 
 <!-- Hero Section - Full Screen -->
 <div class="hero-fullscreen">
@@ -142,6 +165,7 @@ hide:
   <button class="kategoria-link" data-filter="logistyka">Logistyka</button>
   <button class="kategoria-link" data-filter="technologia">Technologia</button>
   <button class="kategoria-link" data-filter="koordynacja">Koordynacja</button>
+  <button class="kategoria-link" data-filter="remont">Remont</button>
 </div>
 
 {{ wiedza_karty(from_index=True) }}
@@ -176,7 +200,7 @@ hide:
 </div>
 
 <div class="onas-zespol">
-  <h3>Zespół</h3>
+  <h3>Czekamy na kontakt</h3>
   <div class="onas-zespol-grid">
     <div class="onas-osoba">
       <h4>Piotr Choromański</h4>
@@ -193,7 +217,7 @@ hide:
 
 <div class="onas-kontakt">
   <div class="onas-kontakt-blok">
-    <h4>Kontakt</h4>
+    <h4>DANE ADRESOWE</h4>
     <p>ul. Stelmachów 58b/3<br>31-234 Kraków</p>
     <p><a href="mailto:piotrekchoromanski@gmail.com">piotrekchoromanski@gmail.com</a><br>
     <a href="tel:+48785195173">+48 785 195 173</a></p>

@@ -422,9 +422,13 @@ def define_env(env):
 
         if csv_path.exists():
             with open(csv_path, encoding='utf-8-sig') as f:
-                reader = csv.DictReader(f, delimiter=',')
+                reader = csv.DictReader(f, delimiter=';')
+                # Pokaż drafty tylko przy serve (lokalny podgląd)
+                import sys
+                show_drafts = 'serve' in sys.argv
                 for row in reader:
-                    if row.get('status') == 'published':
+                    status = row.get('status')
+                    if status == 'published' or (show_drafts and status == 'draft'):
                         articles.append(row)
 
         return articles

@@ -2,7 +2,7 @@
 name: "Budynek produkcyjny"
 type: "Budynek biurowo-laboratoryjny"
 area: "6 700 m²"
-stage: "Realizacja"
+stage: "Przetarg funkcjonalny"
 ---
 
 # Budynek produkcyjny
@@ -28,7 +28,7 @@ stage: "Realizacja"
   </div>
   <div class="meta-item">
     <strong>Stadium</strong>
-    <span>Realizacja</span>
+    <span>Przetarg funkcjonalny</span>
   </div>
   <div class="meta-item">
     <strong>Lokalizacja</strong>
@@ -48,14 +48,17 @@ stage: "Realizacja"
 
 ## O projekcie
 
-Budynek biurowo‑laboratoryjny zaprojektowany jako projekt koncepcyjny i przetargowy w celu poszukiwania optymalnej lokalizacji oraz opracowania układu funkcjonalnego w formule ideal plan layout, przygotowany na zlecenie firmy Metroplan.
+Budynek biurowo‑laboratoryjny zaprojektowany jako projekt koncepcyjny i przetargowy w celu poszukiwania optymalnej lokalizacji oraz opracowania układu funkcjonalnego w formule ideal plan layout, przygotowany wraz z zespołem Metroplan.
+
+
+**Zespół autorski:** BMP - konstrukcja, MKJANURA - instalacje sanitarne, MKJANURA - instalacje elektryczne  i teletechniczne
 
 ## Zakres prac pracowni IA
 
+- BIM management
 - Projekt przetargowy
 - Koordynacja branżowa
 - Kontrola kolizji
-- BIM management
 
 
 ## Galeria
