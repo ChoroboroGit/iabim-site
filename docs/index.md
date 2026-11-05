@@ -224,7 +224,7 @@ hide:
   </div>
   <div class="onas-kontakt-blok">
     <h4>Dane firmowe</h4>
-    <p> Pracownia architektoniczna iA BIM<br>
+    <p> IABIM Piotr Choromański<br>
     NIP: 657-215-74-73<br>
     REGON: 021040055</p>
     <p><a href="polityka-prywatnosci/">Polityka prywatności</a></p>
