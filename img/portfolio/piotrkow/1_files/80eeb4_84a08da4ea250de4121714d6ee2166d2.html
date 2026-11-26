@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!-- saved from url=(0089)https://www-archivinci-com.filesusr.com/html/80eeb4_84a08da4ea250de4121714d6ee2166d2.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArchiVinci credits</title>
+<style>
+    :root {
+        --navy: #22283C; --navy-2: #2C3350; --white: #FFFFFF; --muted: #B7BED3;
+        --accent: #6386FF; --accent-2: #8EA6FF; --orange: #FF8A00;
+        --head: Tahoma, Verdana, Geneva, sans-serif; --body: Arial, Helvetica, sans-serif;
+    }
+    html, body { margin: 0; padding: 0; height: 100%; background: transparent; }
+    body { font-family: var(--body); -webkit-font-smoothing: antialiased; }
+    .card {
+        box-sizing: border-box; height: 100%; display: flex; align-items: center; gap: 28px;
+        padding: 16px 26px; border-radius: 18px; color: var(--white); overflow: hidden;
+        background: radial-gradient(120% 140% at 100% 0%, #34407A 0%, var(--navy-2) 38%, var(--navy) 75%);
+    }
+    .card[hidden] { display: none; }
+    .copy { flex: 1 1 auto; min-width: 0; }
+    .chip {
+        display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-radius: 999px;
+        background: rgba(99, 134, 255, 0.18); color: var(--accent-2); font: 700 12px/16px var(--body);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .title { margin-top: 10px; font: 700 clamp(17px, 2.2vw, 22px)/1.25 var(--head); letter-spacing: -0.2px; }
+    .note { margin-top: 6px; color: var(--muted); font: 400 clamp(13px, 1.5vw, 14px)/1.45 var(--body); }
+    .side { flex: 0 0 auto; text-align: center; }
+    .cta {
+        display: inline-block; padding: 14px 22px; border-radius: 12px; border: 0; cursor: pointer; white-space: nowrap;
+        background: var(--white); color: var(--navy); font: 700 16px/20px var(--body);
+    }
+    .cta:hover, .cta:focus-visible { background: #E9EDFF; outline: none; }
+    .card[data-mode="buy"] .chip { background: rgba(255, 138, 0, 0.16); color: #FFB868; }
+    .card[data-mode="buy"] .dot { background: var(--orange); }
+    @media (max-width: 600px) {
+        .card { flex-direction: column; align-items: stretch; justify-content: center; text-align: center; gap: 12px; padding: 14px 14px 16px; }
+        .copy { flex: 0 0 auto; }
+        .title { margin-top: 8px; }
+        .cta { width: 100%; box-sizing: border-box; }
+    }
+</style>
+</head>
+<body>
+<div class="card" id="card" data-mode="hidden" hidden="">
+    <div class="copy">
+        <div class="chip"><span class="dot"></span><span id="chip"></span></div>
+        <div class="title" id="title" aria-live="polite"></div>
+        <div class="note" id="note"></div>
+    </div>
+    <div class="side">
+        <button type="button" class="cta" id="cta"></button>
+    </div>
+</div>
+<script>
+(function () {
+    var STRINGS = {
+        en: {
+            loginChip: 'Free account', loginTitle: 'You need an account to use this page',
+            loginNote: 'Sign up free and get {n} free credits to start rendering.', loginCta: 'Sign up',
+            buyChip: 'Out of credits', buyTitle: 'You don’t have enough credits',
+            buyNote: 'Buy a plan to continue rendering. Every Premium plan includes unlimited ArchiVinci renders.', buyCta: 'See plans'
+        },
+        es: {
+            loginChip: 'Cuenta gratis', loginTitle: 'Necesitas una cuenta para usar esta página',
+            loginNote: 'Regístrate gratis y consigue {n} créditos gratis para empezar a generar renders.', loginCta: 'Regístrate',
+            buyChip: 'Sin créditos', buyTitle: 'No tienes suficientes créditos',
+            buyNote: 'Compra un plan para seguir generando renders. Todos los planes Premium incluyen renders de ArchiVinci ilimitados.', buyCta: 'Ver planes'
+        },
+        it: {
+            loginChip: 'Account gratuito', loginTitle: 'Ti serve un account per usare questa pagina',
+            loginNote: 'Registrati gratis e ricevi {n} crediti gratuiti per iniziare a generare render.', loginCta: 'Registrati',
+            buyChip: 'Crediti esauriti', buyTitle: 'Non hai abbastanza crediti',
+            buyNote: 'Acquista un piano per continuare a generare render. Tutti i piani Premium includono render ArchiVinci illimitati.', buyCta: 'Vedi i piani'
+        }
+    };
+    // mode → [chip, title, note, button] keys
+    var COPY = {
+        login: ['loginChip', 'loginTitle', 'loginNote', 'loginCta'],
+        buy: ['buyChip', 'buyTitle', 'buyNote', 'buyCta']
+    };
+    var state = { mode: 'hidden', lang: 'en', credits: 3 };
+    var $ = function (id) { return document.getElementById(id); };
+
+    function t(key) {
+        var set = STRINGS[state.lang] || STRINGS.en;
+        return String(set[key] || STRINGS.en[key]).replace('{n}', state.credits);
+    }
+    function send(type) {
+        try { window.parent.postMessage({ type: 'creditBanner:' + type }, '*'); } catch (err) { /* no parent */ }
+    }
+
+    function setMode(mode) {
+        state.mode = mode;
+        var card = $('card');
+        card.hidden = false;
+        card.setAttribute('data-mode', mode);
+        document.documentElement.lang = state.lang;
+        var copy = COPY[mode];
+        $('chip').textContent = t(copy[0]);
+        $('title').textContent = t(copy[1]);
+        $('note').textContent = t(copy[2]);
+        $('cta').textContent = t(copy[3]);
+    }
+
+    var has = function (obj, key) { return Object.prototype.hasOwnProperty.call(obj, key); };
+
+    window.addEventListener('message', function (event) {
+        if (!event || event.source !== window.parent) return;     // only the page this iframe is embedded in, not other windows
+        var msg = event.data;
+        if (!msg || typeof msg.type !== 'string' || msg.type.indexOf('creditBanner:') !== 0) return;
+        if (typeof msg.lang === 'string' && has(STRINGS, msg.lang)) state.lang = msg.lang;
+        if (msg.credits) state.credits = Number(msg.credits) || state.credits;
+        var type = msg.type.slice('creditBanner:'.length);
+        if (has(COPY, type)) setMode(type);
+    });
+
+    $('cta').addEventListener('click', function () { send(state.mode === 'login' ? 'signup' : 'pricing'); });
+    send('ready');
+})();
+</script>
+
+</body></html>

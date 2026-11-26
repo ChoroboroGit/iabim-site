@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<!-- saved from url=(0089)https://www-archivinci-com.filesusr.com/html/80eeb4_1cfba8b0890fcca35029be3eae3963ec.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Loads nothing but https images: no other scripts, styles, fonts, frames, forms or network calls. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>ArchiVinci · Render</title>
+<!--
+  ArchiVinci — big viewer for a render from the history (desktop, /app page).
+  Paste into the #popUpIframe HTML element (Embed HTML → Code), inside the #bigPopUp box.
+  Talks to public/studioPopup.js through postMessage:
+    iframe → page : pp-ready, pp-close (the member closed it: × button, Esc or a click beside the image),
+                    pp-send { seq } ("Open in viewer": the page shows the render in its viewer, with its tools)
+    page → iframe : pp-context { lang, canSend, busy }, pp-open { seq, url, inputUrl, task }, pp-close,
+                    pp-relayout (the popup has just been shown: fit the render to its size)
+  It opens on the render alone; "Compare" shows the input beside it with a slider (renders and upscales
+  that have an input). "Open in viewer" waits while a render is running (busy).
+  Security: messages count only from the page this iframe is embedded in, each field is type-checked,
+  image addresses must be https, text is only ever set as text, and the answers go back to the page's
+  own origin once it has written.
+-->
+<style>
+:root{
+  --bg:#17191E; --navy:#22283C; --glass:rgba(17,19,24,.62); --glass-hover:rgba(17,19,24,.82);
+  --accent-glow:rgba(99,134,255,.45); --ease:cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; overflow:hidden; background:var(--bg); }
+body{ font-family:Arial, Helvetica, sans-serif; color:#fff; font-size:14px; -webkit-font-smoothing:antialiased; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+svg{ display:block; }
+
+.stage{ position:absolute; inset:0; }
+
+/* × in the top-right corner of the popup */
+.close{
+  position:absolute; top:14px; right:14px; z-index:5; width:40px; height:40px; border-radius:50%;
+  display:grid; place-items:center; background:#fff; color:var(--navy);
+  box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .15s var(--ease), background .2s;
+}
+.close:hover{ background:#EEF0F6; }
+.close:active{ transform:scale(.94); }
+.close:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow), 0 6px 18px rgba(0,0,0,.35); }
+.close svg{ width:18px; height:18px; }
+
+/* "Open in viewer", left of the × */
+.send{
+  position:absolute; top:14px; right:64px; z-index:5; height:40px; padding:0 16px 0 13px; border-radius:999px;
+  display:none; align-items:center; gap:8px; background:#fff; color:var(--navy); font-size:14px; font-weight:700; white-space:nowrap;
+  box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .15s var(--ease), background .2s, opacity .2s;
+}
+.pop[data-can-send="true"][data-state="ready"] .send{ display:inline-flex; }
+.send:hover{ background:#EEF0F6; }
+.send:active{ transform:scale(.96); }
+.send:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow), 0 6px 18px rgba(0,0,0,.35); }
+.send svg{ width:18px; height:18px; }
+.send[aria-disabled="true"]{ opacity:.55; cursor:not-allowed; }
+.send[aria-disabled="true"]:hover{ background:#fff; }
+.send[aria-disabled="true"]:active{ transform:none; }
+
+/* the image: positioned by layout() to the render's shape, as big as the popup allows */
+.frame{
+  position:absolute; overflow:hidden; border-radius:14px; background:#0E1014;
+  box-shadow:0 24px 60px rgba(0,0,0,.45); touch-action:none; user-select:none; -webkit-user-select:none;
+  opacity:0; transition:opacity .35s var(--ease);
+}
+.pop[data-state="ready"] .frame{ opacity:1; animation:popIn .45s var(--ease) both; }
+.pop[data-compare="true"] .frame{ cursor:ew-resize; }
+.pop[data-zoomed="true"] .frame{ cursor:grab; }
+.frame.panning{ cursor:grabbing !important; }
+.layer{ position:absolute; inset:0; pointer-events:none; }
+.canvas{ position:absolute; inset:0; transform-origin:50% 50%; will-change:transform; }
+.canvas img{ position:absolute; inset:0; width:100%; height:100%; display:block; -webkit-user-drag:none; }
+.before img{ object-fit:cover; }
+.after img{ object-fit:contain; }
+.pop[data-compare="false"] .before{ display:none; }
+
+.divider{ position:absolute; top:0; bottom:0; width:0; pointer-events:none; display:none; }
+.pop[data-compare="true"] .divider{ display:block; }
+.divider::before{ content:""; position:absolute; top:0; bottom:0; left:-1px; width:2px; background:#fff; box-shadow:0 0 12px rgba(0,0,0,.35); }
+.handle{
+  position:absolute; top:50%; left:0; width:40px; height:40px; margin:-20px 0 0 -20px; border-radius:50%;
+  display:grid; place-items:center; background:#fff; color:var(--navy); pointer-events:auto; cursor:ew-resize; touch-action:none;
+  box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .2s var(--ease);
+}
+.handle:hover{ transform:scale(1.08); }
+.handle:focus-visible,.frame.dragging .handle{ outline:none; box-shadow:0 0 0 4px var(--accent-glow), 0 6px 18px rgba(0,0,0,.35); }
+.handle svg{ width:20px; height:20px; }
+
+/* buttons and labels on the image's corners */
+.pill{
+  position:absolute; z-index:2; display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 14px 0 12px;
+  border-radius:10px; font-size:14px; font-weight:700; white-space:nowrap;
+  background:var(--glass); color:#fff; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  transition:background .2s, transform .15s var(--ease);
+}
+.pill:hover{ background:var(--glass-hover); }
+.pill:active{ transform:scale(.96); }
+.pill:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow); }
+.pill svg{ width:18px; height:18px; }
+.cmp{ top:12px; right:12px; display:none; }
+.pop[data-can-compare="true"] .cmp{ display:inline-flex; }
+.pop[data-compare="true"] .cmp{ background:#fff; color:var(--navy); box-shadow:0 6px 16px rgba(0,0,0,.25); }
+.pop[data-compare="true"] .cmp:hover{ background:#EEF0F6; }
+.zoom{ right:12px; bottom:12px; }
+.tag{
+  position:absolute; z-index:2; padding:5px 10px; border-radius:999px; pointer-events:none;
+  background:var(--glass); color:#fff; font-size:12px; font-weight:700; letter-spacing:.02em;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:opacity .2s;
+}
+.tag-before{ top:12px; left:12px; display:none; }
+.pop[data-compare="true"] .tag-before{ display:block; }
+.dims{ left:12px; bottom:12px; font-variant-numeric:tabular-nums; }
+.dims:empty{ display:none; }
+
+/* loading / broken */
+.spinner{
+  position:absolute; left:50%; top:50%; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%;
+  border:3px solid rgba(255,255,255,.16); border-top-color:#fff; animation:spin .9s linear infinite; display:none;
+}
+.pop[data-state="loading"] .spinner{ display:block; }
+.broken{
+  position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  padding:24px; text-align:center; color:#C9CFDF; font-size:14px;
+}
+.broken svg{ width:32px; height:32px; color:#8A92A6; }
+.pop[data-state="broken"] .broken{ display:flex; }
+
+@keyframes popIn{ from{ opacity:0; transform:scale(.985); } to{ opacity:1; transform:scale(1); } }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+@media (max-width:700px){
+  .pill span,.send span{ display:none; }
+  .pill,.send{ width:40px; padding:0; justify-content:center; }
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+}
+</style>
+</head>
+<body>
+<main class="pop" id="pop" data-state="idle" data-compare="false" data-can-compare="false" data-zoomed="false" data-can-send="true">
+  <div class="stage" id="stage">
+    <div class="frame" id="frame">
+      <div class="layer before"><div class="canvas" id="beforeCanvas"><img id="beforeImg" alt="" draggable="false"></div></div>
+      <div class="layer after" id="afterLayer"><div class="canvas" id="afterCanvas"><img id="afterImg" alt="" draggable="false"></div></div>
+      <div class="divider" id="divider">
+        <button type="button" class="handle" id="handle" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-label="Compare before and after">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l-5 6 5 6"></path><path d="M15 6l5 6-5 6"></path></svg>
+        </button>
+      </div>
+      <span class="tag tag-before" id="tagBefore">Before</span>
+      <button type="button" class="pill cmp" id="cmpBtn" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"></path><path d="M8 6H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"></path><path d="M16 6h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3"></path></svg>
+        <span id="cmpText">Compare</span>
+      </button>
+      <span class="tag dims" id="dims"></span>
+      <button type="button" class="pill zoom" id="zoomBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4.2-4.2"></path></svg>
+        <span id="zoomText">Zoom in</span>
+      </button>
+    </div>
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="broken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 3l18 18"></path></svg><span id="brokenText">This render could not be loaded.</span></div>
+  </div>
+  <button type="button" class="send" id="sendBtn" aria-disabled="false" title="Open it in the viewer to upscale, animate, edit or download it">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><path d="M9 4v16"></path><path d="M13 12h5"></path><path d="M15.5 9.5L18 12l-2.5 2.5"></path></svg>
+    <span id="sendText">Open in viewer</span>
+  </button>
+  <button type="button" class="close" id="closeBtn" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var READY_RETRY_MS = 400;
+  var READY_MAX_TRIES = 40;
+  var ZOOM_MIN_TARGET = 2;          // "Zoom in": at least 2×, up to the render's own pixels …
+  var ZOOM_MAX = 4;                 // … but never past 4×
+  // The popup can still be opening (or closed) when a render has loaded: narrower or shorter than this, its
+  // size isn't real yet, so the render waits for it (at most SIZE_WAIT_MS) instead of being fitted into it.
+  var MIN_STAGE = 120;
+  var SIZE_WAIT_MS = 10000;
+  var SETTLE_MS = 1500;             // after a render is shown, its fit is checked again for this long
+  var MAX_URL = 4096;
+
+  var I18N = {
+    en: { close: 'Close', compare: 'Compare', hideCompare: 'Hide compare', before: 'Before', original: 'Original',
+          zoomIn: 'Zoom in', zoomOut: 'Zoom out', slider: 'Compare before and after', imageError: 'This render could not be loaded.',
+          send: 'Open in viewer', sendTitle: 'Open it in the viewer to upscale, animate, edit or download it',
+          sendBusy: 'Available when your render is ready' },
+    es: { close: 'Cerrar', compare: 'Comparar', hideCompare: 'Ocultar comparación', before: 'Antes', original: 'Original',
+          zoomIn: 'Acercar', zoomOut: 'Alejar', slider: 'Compara antes y después', imageError: 'No se pudo cargar este render.',
+          send: 'Abrir en el visor', sendTitle: 'Ábrelo en el visor para mejorarlo, animarlo, editarlo o descargarlo',
+          sendBusy: 'Disponible cuando tu render esté listo' },
+    it: { close: 'Chiudi', compare: 'Confronta', hideCompare: 'Nascondi confronto', before: 'Prima', original: 'Originale',
+          zoomIn: 'Ingrandisci', zoomOut: 'Riduci', slider: 'Confronta prima e dopo', imageError: 'Impossibile caricare questo render.',
+          send: 'Apri nel visore', sendTitle: 'Aprilo nel visore per migliorarlo, animarlo, modificarlo o scaricarlo',
+          sendBusy: 'Disponibile quando il render è pronto' }
+  };
+
+  var state = {
+    lang: 'en', seq: 0, task: 'render', url: null, inputUrl: null,
+    w: 0, h: 0,                     // the render's own size
+    canCompare: false, compare: false,
+    canSend: false,                 // the page offers "Open in viewer"
+    busy: false,                    // a render is running on the page: "Open in viewer" waits
+    frac: 0.5,                      // divider across the image (0 = all render, 1 = all input)
+    zoom: 1, panX: 0, panY: 0,
+    rect: { x: 0, y: 0, w: 0, h: 0 },
+    heardFromParent: false,
+    parentOrigin: '*'               // the page's origin once it has written (answers go only there)
+  };
+  var sizing = { pending: 0, until: 0, timer: 0, w: 0, h: 0 };   // pending: seq of a loaded render waiting for the popup's size
+
+  function $(id) { return document.getElementById(id); }
+  var pop = $('pop'), stage = $('stage'), frame = $('frame');
+  var beforeImg = $('beforeImg'), afterImg = $('afterImg'), beforeCanvas = $('beforeCanvas'), afterCanvas = $('afterCanvas');
+  var afterLayer = $('afterLayer'), divider = $('divider'), handle = $('handle');
+
+  function t(key) {
+    var dict = I18N[state.lang] || I18N.en;
+    return dict[key] != null ? dict[key] : (I18N.en[key] != null ? I18N.en[key] : key);
+  }
+  function post(msg) {
+    if (window.parent && window.parent !== window) {
+      try { window.parent.postMessage(msg, state.parentOrigin); } catch (e) { /* ignore */ }
+    }
+  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  // An image address from the page: an https URL (renders live on Wix Media or S3), else null.
+  function safeUrl(value) {
+    if (typeof value !== 'string' || !value || value.length > MAX_URL) return null;
+    try {
+      var u = new URL(value);
+      return u.protocol === 'https:' ? u.href : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function applyI18n() {
+    document.documentElement.lang = state.lang;
+    $('closeBtn').setAttribute('aria-label', t('close'));
+    $('closeBtn').setAttribute('title', t('close'));
+    handle.setAttribute('aria-label', t('slider'));
+    $('tagBefore').textContent = state.task === 'upscale' ? t('original') : t('before');
+    $('brokenText').textContent = t('imageError');
+    renderButtons();
+  }
+
+  function renderButtons() {
+    pop.setAttribute('data-can-compare', state.canCompare ? 'true' : 'false');
+    pop.setAttribute('data-compare', state.compare ? 'true' : 'false');
+    pop.setAttribute('data-zoomed', state.zoom > 1.001 ? 'true' : 'false');
+    $('cmpBtn').setAttribute('aria-pressed', state.compare ? 'true' : 'false');
+    $('cmpText').textContent = state.compare ? t('hideCompare') : t('compare');
+    $('zoomText').textContent = state.zoom > 1.001 ? t('zoomOut') : t('zoomIn');
+    renderSend();
+  }
+
+  function renderSend() {
+    var send = $('sendBtn');
+    pop.setAttribute('data-can-send', state.canSend ? 'true' : 'false');
+    $('sendText').textContent = t('send');
+    send.setAttribute('aria-disabled', state.busy ? 'true' : 'false');
+    send.setAttribute('title', state.busy ? t('sendBusy') : t('sendTitle'));
+  }
+
+  function setState(name) { pop.setAttribute('data-state', name); }
+
+  /*──────── geometry ────────*/
+  // Room around the image: the × sits above its top-right corner.
+  function padding() {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    var side = clamp(Math.round(w * 0.05), 16, 72);
+    return { top: clamp(Math.round(h * 0.08), 56, 72), bottom: clamp(Math.round(h * 0.05), 16, 48), left: side, right: side };
+  }
+
+  // Fit the render to the popup. false (nothing changed): no render yet, or the popup has no real size yet
+  // (force: fit it anyway).
+  function layout(force) {
+    if (!state.w || !state.h) return false;
+    var sw = stage.clientWidth, sh = stage.clientHeight;
+    if (!force && (sw < MIN_STAGE || sh < MIN_STAGE)) return false;
+    sizing.w = sw; sizing.h = sh;
+    var p = padding();
+    var aw = Math.max(40, sw - p.left - p.right);
+    var ah = Math.max(40, sh - p.top - p.bottom);
+    var s = Math.min(aw / state.w, ah / state.h);
+    var rw = Math.round(state.w * s), rh = Math.round(state.h * s);
+    state.rect = { x: Math.round(p.left + (aw - rw) / 2), y: Math.round(p.top + (ah - rh) / 2), w: rw, h: rh };
+    frame.style.left = state.rect.x + 'px';
+    frame.style.top = state.rect.y + 'px';
+    frame.style.width = rw + 'px';
+    frame.style.height = rh + 'px';
+    applyView();
+    return true;
+  }
+
+  // A loaded render is shown once the popup has its size; a shown one is fitted again whenever that size changes.
+  // Called on every resize, when the page says the popup is shown (pp-relayout), and by watchSize().
+  function refit(force) {
+    if (sizing.pending) {
+      if (sizing.pending !== state.seq) { sizing.pending = 0; return; }
+      if (layout(force)) { sizing.pending = 0; setState('ready'); watchSize(SETTLE_MS); }
+    } else if (pop.getAttribute('data-state') === 'ready' && (stage.clientWidth !== sizing.w || stage.clientHeight !== sizing.h)) {
+      layout();
+    }
+  }
+
+  // Look at the popup's size for `ms` (Wix may still be sizing it, and a resize event isn't always delivered):
+  // a render still waiting at the end is shown anyway.
+  function watchSize(ms) {
+    sizing.until = Math.max(sizing.until, Date.now() + ms);
+    if (!sizing.timer) sizing.timer = setTimeout(sizeTick, 0);
+  }
+  function sizeTick() {
+    sizing.timer = 0;
+    if (pop.getAttribute('data-state') === 'idle') { sizing.pending = 0; return; }
+    var last = Date.now() >= sizing.until;
+    refit(last);
+    if (!last && !sizing.timer) sizing.timer = setTimeout(sizeTick, 80);
+  }
+
+  function clampPan() {
+    var maxX = (state.rect.w * state.zoom - state.rect.w) / 2;
+    var maxY = (state.rect.h * state.zoom - state.rect.h) / 2;
+    state.panX = clamp(state.panX, -maxX, maxX);
+    state.panY = clamp(state.panY, -maxY, maxY);
+  }
+
+  function applyView() {
+    clampPan();
+    var tf = 'translate(' + state.panX + 'px,' + state.panY + 'px) scale(' + state.zoom + ')';
+    beforeCanvas.style.transform = tf;
+    afterCanvas.style.transform = tf;
+    var x = Math.round(state.frac * state.rect.w);
+    divider.style.left = x + 'px';
+    afterLayer.style.clipPath = state.compare ? 'inset(0 0 0 ' + x + 'px)' : 'none';
+    handle.setAttribute('aria-valuenow', String(Math.round(state.frac * 100)));
+    renderButtons();
+  }
+
+  function zoomTarget() {
+    var native = state.rect.w ? state.w / state.rect.w : ZOOM_MIN_TARGET;
+    return clamp(native, ZOOM_MIN_TARGET, ZOOM_MAX);
+  }
+
+  // Zoom keeping the point under (px, py) — frame coordinates — where it is.
+  function zoomAt(nextZoom, px, py) {
+    var z = clamp(nextZoom, 1, ZOOM_MAX);
+    var cx = state.rect.w / 2 + state.panX, cy = state.rect.h / 2 + state.panY;
+    var ux = (px - cx) / state.zoom, uy = (py - cy) / state.zoom;
+    state.panX += ux * (state.zoom - z);
+    state.panY += uy * (state.zoom - z);
+    state.zoom = z;
+    if (z === 1) { state.panX = 0; state.panY = 0; }
+    applyView();
+  }
+
+  function setCompare(on) {
+    state.compare = !!on && state.canCompare;
+    if (state.compare) state.frac = 0.5;
+    applyView();
+  }
+
+  /*──────── page → iframe ────────*/
+  // m: { seq, url, inputUrl, task } with url / inputUrl already checked (safeUrl: https or null)
+  function open(m) {
+    state.seq = m.seq;
+    state.task = m.task === 'upscale' || m.task === 'panorama' ? m.task : 'render';
+    state.url = m.url;
+    state.inputUrl = m.inputUrl || null;
+    state.canCompare = !!state.inputUrl && state.task !== 'panorama';
+    state.compare = false;                                    // always opens on the render alone
+    state.frac = 0.5; state.zoom = 1; state.panX = 0; state.panY = 0;
+    state.w = 0; state.h = 0;
+    $('dims').textContent = '';
+    applyI18n();
+    setState('loading');
+    afterImg.removeAttribute('src');
+    if (state.inputUrl) beforeImg.src = state.inputUrl;     // ready for "Compare"
+    else beforeImg.removeAttribute('src');
+
+    if (!state.url) { setState('broken'); return; }         // not an https address
+
+    var seq = state.seq;
+    var probe = new Image();
+    probe.onload = function () {
+      if (seq !== state.seq) return;                         // another render was opened meanwhile
+      state.w = probe.naturalWidth; state.h = probe.naturalHeight;
+      if (!state.w || !state.h) { setState('broken'); return; }
+      afterImg.src = state.url;
+      $('dims').textContent = state.w + ' × ' + state.h;
+      sizing.pending = seq;                                  // shown by refit() once the popup has its size
+      refit();
+      if (sizing.pending) watchSize(SIZE_WAIT_MS);
+    };
+    probe.onerror = function () { if (seq === state.seq) setState('broken'); };
+    probe.src = state.url;
+  }
+
+  function reset() {
+    sizing.pending = 0;
+    state.seq += 1;                                           // drop a load still on its way
+    state.url = null; state.inputUrl = null; state.canCompare = false; state.compare = false;
+    state.zoom = 1; state.panX = 0; state.panY = 0;
+    afterImg.removeAttribute('src');
+    beforeImg.removeAttribute('src');
+    setState('idle');
+    renderButtons();
+  }
+
+  function close() {
+    reset();
+    post({ kind: 'pp-close' });
+  }
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window.parent) return;               // only the page this iframe is embedded in
+    var m = event.data;
+    if (!m || typeof m !== 'object' || typeof m.kind !== 'string' || m.kind.indexOf('pp-') !== 0) return;
+    state.heardFromParent = true;
+    if (typeof event.origin === 'string' && /^https?:\/\/[^\/\s]+$/.test(event.origin)) state.parentOrigin = event.origin;
+    switch (m.kind) {
+      case 'pp-context':
+        if (typeof m.lang === 'string') state.lang = Object.prototype.hasOwnProperty.call(I18N, m.lang) ? m.lang : 'en';
+        if (typeof m.canSend === 'boolean') state.canSend = m.canSend;
+        if (typeof m.busy === 'boolean') state.busy = m.busy;
+        applyI18n();
+        break;
+      case 'pp-open':
+        if (typeof m.seq !== 'number' || !isFinite(m.seq)) break;
+        open({ seq: m.seq, url: safeUrl(m.url), inputUrl: safeUrl(m.inputUrl), task: m.task });
+        break;
+      case 'pp-relayout':
+        refit();
+        watchSize(SETTLE_MS);
+        break;
+      case 'pp-close': reset(); break;
+      default: break;
+    }
+  });
+
+  /*──────── pointer: divider, pan, zoom ────────*/
+  var drag = null;
+  function framePoint(e) {
+    var r = frame.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function setFracAt(x) {
+    if (!state.rect.w) return;
+    state.frac = clamp(x / state.rect.w, 0, 1);
+    applyView();
+  }
+
+  frame.addEventListener('pointerdown', function (e) {
+    if (pop.getAttribute('data-state') !== 'ready' || e.button > 0 || e.target.closest('.pill')) return;
+    var onHandle = !!e.target.closest('.handle');
+    var mode;
+    if (onHandle && state.compare) mode = 'divider';
+    else if (state.zoom > 1.001) mode = 'pan';
+    else if (state.compare) mode = 'divider';
+    else return;
+    drag = { mode: mode, id: e.pointerId, x: e.clientX, y: e.clientY, panX: state.panX, panY: state.panY };
+    frame.setPointerCapture(e.pointerId);
+    frame.classList.add(mode === 'pan' ? 'panning' : 'dragging');
+    if (mode === 'divider') setFracAt(framePoint(e).x);
+    e.preventDefault();
+  });
+  frame.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (drag.mode === 'divider') {
+      setFracAt(framePoint(e).x);
+    } else {
+      state.panX = drag.panX + (e.clientX - drag.x);
+      state.panY = drag.panY + (e.clientY - drag.y);
+      applyView();
+    }
+  });
+  function endDrag(e) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    drag = null;
+    frame.classList.remove('panning', 'dragging');
+  }
+  frame.addEventListener('pointerup', endDrag);
+  frame.addEventListener('pointercancel', endDrag);
+
+  frame.addEventListener('dblclick', function (e) {
+    if (pop.getAttribute('data-state') !== 'ready' || e.target.closest('.pill') || e.target.closest('.handle')) return;
+    var p = framePoint(e);
+    if (state.zoom > 1.001) zoomAt(1, state.rect.w / 2, state.rect.h / 2);
+    else zoomAt(zoomTarget(), p.x, p.y);
+  });
+  frame.addEventListener('wheel', function (e) {
+    if (pop.getAttribute('data-state') !== 'ready' || !(e.ctrlKey || e.metaKey)) return;   // pinch / ctrl+wheel
+    e.preventDefault();
+    var p = framePoint(e);
+    zoomAt(state.zoom * Math.exp(-e.deltaY * 0.01), p.x, p.y);
+  }, { passive: false });
+
+  $('zoomBtn').addEventListener('click', function () {
+    if (state.zoom > 1.001) zoomAt(1, state.rect.w / 2, state.rect.h / 2);
+    else zoomAt(zoomTarget(), state.rect.w / 2, state.rect.h / 2);
+  });
+  $('cmpBtn').addEventListener('click', function () { setCompare(!state.compare); });
+
+  handle.addEventListener('keydown', function (e) {
+    var step = { ArrowLeft: -0.02, ArrowRight: 0.02, PageDown: -0.1, PageUp: 0.1 }[e.key];
+    if (step != null) { state.frac = clamp(state.frac + step, 0, 1); applyView(); e.preventDefault(); }
+    else if (e.key === 'Home') { state.frac = 0; applyView(); e.preventDefault(); }
+    else if (e.key === 'End') { state.frac = 1; applyView(); e.preventDefault(); }
+  });
+
+  // "Open in viewer": the page takes the render to its viewer (and closes the popup), unless a render is running.
+  $('sendBtn').addEventListener('click', function () {
+    if (!state.canSend || state.busy || pop.getAttribute('data-state') !== 'ready') return;
+    post({ kind: 'pp-send', seq: state.seq });
+  });
+
+  // Close: the ×, Esc, or a click on the dark area beside the image.
+  $('closeBtn').addEventListener('click', close);
+  stage.addEventListener('click', function (e) { if (e.target === stage || e.target.closest('.broken')) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pop.getAttribute('data-state') !== 'idle') close(); });
+
+  /*──────── boot ────────*/
+  function onResize() { refit(); if (pop.getAttribute('data-state') !== 'idle') watchSize(SETTLE_MS); }
+  if (window.ResizeObserver) new ResizeObserver(onResize).observe(stage);
+  window.addEventListener('resize', onResize);
+  applyI18n();
+
+  var readyTries = 0;
+  (function sayReady() {
+    if (state.heardFromParent || readyTries >= READY_MAX_TRIES) return;
+    readyTries += 1;
+    post({ kind: 'pp-ready', version: 1 });
+    setTimeout(sayReady, READY_RETRY_MS);
+  })();
+})();
+</script>
+
+</body></html>

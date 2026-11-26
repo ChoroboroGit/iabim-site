@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<!-- saved from url=(0089)https://www-archivinci-com.filesusr.com/html/80eeb4_f9f429603da3c232b7d69108efdee884.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArchiVinci · Edit area</title>
+<!--
+  ArchiVinci — area selection (brush, eraser, polygonal lasso) and texture picker for the
+  Edit tools of the consolidated generate page. Paste into the #textureIframe HTML element
+  (Embed HTML → Code). Talks to public/studioEdit.js through postMessage; see
+  New change/studio-page/README.md for the message protocol.
+-->
+<style>
+:root{
+  --navy:#22283C; --navy-2:#11214B; --muted:#5B6478; --faint:#8A92A6;
+  --accent:#6386FF; --accent-ink:#3F5BD8; --accent-soft:#EEF2FF; --accent-line:#D7DFFF; --accent-glow:rgba(99,134,255,.28);
+  --orange:#FF8A00; --orange-soft:#FFF3E6;
+  --line:#D9DDE8; --line-2:#C3CADC; --bg:#F6F7FB; --ok:#1BA672; --ok-soft:#E8F7F0; --err:#D63B3B;
+  --glass:rgba(17,24,43,.62);
+  --radius:20px; --radius-md:16px; --radius-sm:12px;
+  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
+  --head-font:Tahoma, Verdana, Geneva, sans-serif;
+}
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; background:transparent; overflow:hidden; }
+body{ font-family:Arial, Helvetica, sans-serif; color:var(--navy); font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased; }
+button,input{ font:inherit; color:inherit; }
+button{ background:none; border:0; cursor:pointer; }
+button:disabled{ cursor:default; }
+svg{ display:block; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ───────── layout ───────── */
+.app{ height:100%; display:flex; align-items:center; justify-content:center; padding:24px; }
+.card{
+  position:relative; width:min(100%, 1040px); height:100%;
+  display:flex; flex-direction:column; gap:12px; padding:18px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:0 1px 2px rgba(34,40,60,.04), 0 14px 36px rgba(34,40,60,.08);
+  animation:cardIn .6s var(--ease) both;
+}
+.app[data-phase="idle"] .card{ opacity:0; pointer-events:none; animation:none; }
+
+.head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; min-height:30px; }
+.head-left{ display:flex; align-items:flex-start; gap:10px; min-width:0; }
+.head-badge{ flex:0 0 30px; height:30px; border-radius:9px; display:grid; place-items:center; color:#fff; background:linear-gradient(140deg, var(--accent), #8FA6FF); box-shadow:0 6px 14px rgba(99,134,255,.3); }
+.head-badge svg{ width:17px; height:17px; }
+.head-text{ min-width:0; }
+.head-title{ font-family:var(--head-font); font-weight:700; font-size:16px; letter-spacing:-.01em; line-height:1.25; }
+.head-hint{ font-size:13px; color:var(--muted); line-height:1.35; margin-top:2px; transition:opacity .25s; }
+.head-hint.swap{ animation:hintIn .45s var(--ease); }
+.app[data-nudge="true"] .head-hint{ color:var(--accent-ink); font-weight:700; }
+.chip{
+  flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px 0 10px;
+  border-radius:999px; background:var(--bg); color:var(--muted); font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;
+  transition:background .3s, color .3s;
+}
+.chip-dot{ width:8px; height:8px; border-radius:50%; background:var(--faint); transition:background .3s; }
+.chip.on{ background:var(--accent-soft); color:var(--accent-ink); }
+.chip.on .chip-dot{ background:var(--accent); }
+.app[data-phase="fixed"] .chip{ background:var(--ok-soft); color:var(--ok); }
+.app[data-phase="fixed"] .chip-dot{ background:var(--ok); }
+
+/* ───────── stage ───────── */
+.stage{
+  position:relative; flex:1; min-height:180px; border-radius:14px; overflow:hidden;
+  overflow:clip;                                   /* never scrolled (e.g. towards the closed drawer) */
+  background-color:#F7F8FC; background-image:radial-gradient(#D6DCEA 1px, transparent 1px); background-size:16px 16px;
+  box-shadow:inset 0 0 0 1px #E6E9F2;
+}
+.viewport{ position:absolute; inset:0; overflow:hidden; overflow:clip; touch-action:none; user-select:none; -webkit-user-select:none; outline:none; }
+.viewport[data-tool="brush"],.viewport[data-tool="eraser"]{ cursor:none; }
+.viewport[data-tool="lasso"]{ cursor:crosshair; }
+.viewport[data-tool="none"]{ cursor:default; }
+.viewport.panning,.viewport.space{ cursor:grab; }
+.viewport.panning.grabbing{ cursor:grabbing; }
+.app[data-phase="fixed"] .viewport{ cursor:default; }
+.wrap{ position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; opacity:0; transition:opacity .45s var(--ease); }
+.app[data-phase="edit"] .wrap,.app[data-phase="fixed"] .wrap{ opacity:1; }
+.wrap img,.wrap canvas,.wrap svg{ position:absolute; left:0; top:0; width:100%; height:100%; display:block; -webkit-user-drag:none; }
+.wrap img{ border-radius:2px; box-shadow:0 10px 30px rgba(17,24,43,.16); }
+#mask{ opacity:.5; transition:opacity .35s; }
+#edge{ opacity:.95; }
+.app[data-phase="fixed"] #mask{ opacity:.58; animation:selPulse 2.6s ease-in-out infinite; }
+.viewport.drawing #edge{ opacity:0; }
+#lassoSvg{ overflow:visible; pointer-events:none; }
+.lasso-under{ fill:none; stroke:#fff; stroke-linejoin:round; stroke-linecap:round; }
+.lasso-line{ fill:none; stroke:var(--accent-ink); stroke-linejoin:round; stroke-linecap:round; }
+.lasso-rubber{ fill:none; stroke:var(--accent-ink); stroke-dasharray:6 5; }
+.lasso-pt{ fill:#fff; stroke:var(--accent-ink); }
+.lasso-first{ fill:var(--accent); stroke:#fff; }
+.lasso-first.hot{ fill:var(--orange); }
+
+.cursor{
+  position:absolute; left:0; top:0; border-radius:50%; pointer-events:none; opacity:0; transition:opacity .15s, width .12s, height .12s;
+  border:1.5px solid #fff; box-shadow:0 0 0 1px rgba(17,24,43,.55), inset 0 0 0 1px rgba(17,24,43,.35);
+}
+.cursor::after{ content:""; position:absolute; left:50%; top:50%; width:3px; height:3px; margin:-1.5px 0 0 -1.5px; border-radius:50%; background:#fff; box-shadow:0 0 0 1px rgba(17,24,43,.55); }
+.cursor.eraser{ border-style:dashed; background:rgba(255,255,255,.18); }
+.cursor.show{ opacity:1; }
+
+/* loading / error */
+.overlay{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--muted); font-size:13.5px; font-weight:700; text-align:center; padding:16px; }
+.app[data-phase="loading"] .ov-loading,.app[data-phase="error"] .ov-error{ display:flex; }
+.spin{ width:38px; height:38px; border-radius:50%; border:3px solid rgba(99,134,255,.2); border-top-color:var(--accent); animation:spin .85s linear infinite; }
+.ov-error svg{ width:30px; height:30px; color:var(--faint); }
+
+/* ───────── floating controls ───────── */
+.glass{
+  background:var(--glass); color:#fff; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  transition:background .2s, transform .15s var(--ease), opacity .25s;
+}
+.glass:hover{ background:rgba(17,24,43,.8); }
+.glass:active{ transform:scale(.96); }
+.zoom{ position:absolute; right:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; border-radius:10px; overflow:hidden; z-index:3; }
+.zoom button{ width:40px; height:40px; display:grid; place-items:center; }
+.zoom button + button{ border-top:1px solid rgba(255,255,255,.12); }
+.zoom svg{ width:18px; height:18px; }
+.zoom-level{ position:absolute; top:14px; right:14px; z-index:3; height:30px; padding:0 12px; border-radius:999px; font-size:12.5px; font-weight:700; opacity:0; pointer-events:none; }
+.zoom-level.show{ opacity:1; pointer-events:auto; }
+.zoom,.zoom-level,.toolbar,.fixedbar{ opacity:0; pointer-events:none; }
+.app[data-phase="edit"] .zoom,.app[data-phase="fixed"] .zoom{ opacity:1; pointer-events:auto; }
+button:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow); }
+
+/* toolbar */
+.toolbar,.fixedbar{
+  position:absolute; left:50%; bottom:14px; z-index:4; display:flex; align-items:center; gap:6px; padding:6px;
+  width:max-content; max-width:calc(100% - 20px); border-radius:16px; background:#fff;
+  box-shadow:0 1px 2px rgba(17,24,43,.06), 0 12px 32px rgba(17,24,43,.16), inset 0 0 0 1px rgba(34,40,60,.06);
+  transform:translate(-50%, 16px); transition:opacity .35s var(--ease), transform .5s var(--spring);
+}
+.app[data-phase="edit"] .toolbar,.app[data-phase="fixed"] .fixedbar{ opacity:1; pointer-events:auto; transform:translate(-50%, 0); }
+.toolbar > *,.fixedbar > *{ flex-shrink:0; }            /* never squeezed into each other */
+/* Not enough room (measured in fitBars, any language): icons only, then two rows. */
+.toolbar.compact .tb .lbl,.fixedbar.compact .tb .lbl{ display:none; }
+.toolbar.compact .tb:not(.primary):not(.accent),.fixedbar.compact .tb:not(.primary):not(.accent){ padding:0; width:38px; }
+.toolbar.compact .tb.primary,.fixedbar.compact .tb.accent{ padding:0 12px; }
+.toolbar.compact .size input{ width:76px; }
+.toolbar.tight,.fixedbar.tight{ flex-wrap:wrap; justify-content:center; gap:3px; padding:4px; }
+.toolbar.tight .sep,.fixedbar.tight .sep{ display:none; }
+.toolbar.tight .size{ padding:0 2px 0 4px; gap:5px; }
+.toolbar.tight .size input{ width:64px; }
+.toolbar.tight .size-val{ display:none; }
+.toolbar.tight .tb,.fixedbar.tight .tb{ height:34px; min-width:34px; }
+.toolbar.tight .tb:not(.primary):not(.accent),.fixedbar.tight .tb:not(.primary):not(.accent){ width:34px; }
+.toolbar.tight #doneBtn{ flex:0 0 calc(100% - 16px); margin:3px 8px 5px; height:40px; font-size:14px; }   /* wrapped (phones): Done gets a row of its own */
+.app[data-locked="true"] .toolbar,.app[data-locked="true"] .fixedbar,.app[data-locked="true"] .zoom{ opacity:.55; pointer-events:none; }
+.sep{ flex:0 0 1px; align-self:stretch; margin:6px 2px; background:var(--line); }
+.tb{
+  height:38px; min-width:38px; padding:0 11px; border-radius:11px; display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  font-size:13px; font-weight:700; color:var(--navy); white-space:nowrap; transition:background .2s, color .2s, transform .15s var(--ease), opacity .2s;
+}
+.tb svg{ width:18px; height:18px; flex:0 0 auto; }
+.tb:hover:not(:disabled){ background:var(--bg); }
+.tb:active:not(:disabled){ transform:scale(.96); }
+.tb:disabled{ opacity:.35; }
+.tb.icon{ padding:0; width:38px; }
+.size{ display:flex; align-items:center; gap:8px; padding:0 6px 0 8px; transition:opacity .25s, width .3s; }
+.size.off{ opacity:.35; pointer-events:none; }
+.size-dot{ border-radius:50%; background:var(--navy); flex:0 0 auto; }
+.size input{ -webkit-appearance:none; appearance:none; width:110px; height:4px; border-radius:999px; background:linear-gradient(90deg, var(--accent) var(--fill, 30%), #DDE2EE var(--fill, 30%)); outline:none; cursor:pointer; }
+.size input::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid var(--accent); box-shadow:0 2px 6px rgba(17,24,43,.2); }
+.size input::-moz-range-thumb{ width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid var(--accent); }
+.size input:focus-visible::-webkit-slider-thumb{ box-shadow:0 0 0 4px var(--accent-glow); }
+.size-val{ min-width:26px; font-size:12.5px; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; text-align:right; }
+.tb.primary{ background:var(--navy); color:#fff; padding:0 16px; }
+.tb.primary:hover:not(:disabled){ background:var(--navy-2); }
+.tb.primary:disabled{ opacity:.4; }
+.tb.primary.busy{ pointer-events:none; }
+.tb.primary .btn-spin{ display:none; width:15px; height:15px; border-radius:50%; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:spin .8s linear infinite; }
+.tb.primary.busy .btn-spin{ display:block; }
+.tb.primary.busy .btn-ico{ display:none; }
+.app[data-nudge="true"] #doneBtn:not(:disabled){ animation:nudge 1.1s var(--ease) 2; }
+.tex-chip{ display:none; align-items:center; gap:8px; height:38px; padding:0 4px 0 4px; border-radius:11px; background:var(--accent-soft); color:var(--accent-ink); font-size:13px; font-weight:700; max-width:220px; }
+.tex-chip img{ width:30px; height:30px; border-radius:8px; object-fit:cover; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgba(0,0,0,.06); }
+.tex-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tex-open{ display:flex; align-items:center; gap:8px; min-width:0; height:34px; padding:0 4px 0 2px; border-radius:9px; color:inherit; font-weight:700; }
+.tex-open:hover{ background:rgba(63,91,216,.08); }
+.tex-x{ width:26px; height:26px; border-radius:8px; display:grid; place-items:center; flex:0 0 auto; }
+.tex-x:hover{ background:rgba(63,91,216,.12); }
+.tex-x svg{ width:13px; height:13px; }
+.app[data-texture="true"] .tex-chip{ display:inline-flex; animation:chipIn .45s var(--spring); }
+.tb.accent{ background:var(--accent); color:#fff; padding:0 16px; box-shadow:0 6px 16px rgba(99,134,255,.38); }
+.tb.accent:hover:not(:disabled){ background:var(--accent-ink); }
+.app[data-phase="fixed"] #chooseBtn{ animation:nudge 1.1s var(--ease) .7s 2; }   /* the next step: two rings once the area is selected */
+.app[data-texture="true"] #chooseBtn{ display:none; }
+
+/* ───────── next-step guide (area selected → prompt and Generate on the left), as in the uploader ───────── */
+.guide{
+  position:absolute; z-index:4; left:14px; top:50%; max-width:min(310px, calc(100% - 28px));
+  display:flex; align-items:center; gap:12px; padding:10px 16px 10px 10px; text-align:left;
+  border-radius:16px; color:#fff; background:rgba(17,24,43,.86);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  box-shadow:0 16px 36px rgba(17,24,43,.30), inset 0 0 0 1px rgba(255,255,255,.08);
+  opacity:0; translate:22px -50%; pointer-events:none; visibility:hidden;
+  transition:opacity .45s var(--ease), translate .7s var(--spring), background .2s, visibility 0s linear .7s;
+}
+.guide.show{ opacity:1; translate:0 -50%; pointer-events:auto; visibility:visible; transition:opacity .45s var(--ease), translate .7s var(--spring), background .2s; }
+.guide:hover{ background:rgba(17,24,43,.94); }
+.guide:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow), 0 16px 36px rgba(17,24,43,.30); }
+.app[data-guide="up"] .guide{ top:14px; right:14px; width:max-content; margin-inline:auto; translate:0 -14px; }
+.app[data-guide="up"] .guide.show{ translate:0 0; }
+.guide-arrow{
+  position:relative; flex:0 0 38px; height:38px; border-radius:50%; display:grid; place-items:center;
+  background:var(--accent); color:#fff; box-shadow:0 6px 16px rgba(99,134,255,.45);
+}
+.guide-arrow::before{ content:""; position:absolute; inset:0; border-radius:50%; animation:guideRing 2s ease-out infinite; }
+.guide-arrow svg{ width:20px; height:20px; animation:nudgeLeft 1.5s var(--ease) infinite; }
+.app[data-guide="up"] .guide-arrow svg{ rotate:90deg; animation-name:nudgeUp; }
+.guide-text{ min-width:0; }
+.guide-title{ display:block; font-family:var(--head-font); font-weight:700; font-size:14px; letter-spacing:-.01em; }
+.guide-body{ display:block; margin-top:1px; font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.8); }
+
+/* toast */
+.toast{
+  position:absolute; left:50%; bottom:72px; z-index:6; max-width:calc(100% - 32px); padding:10px 16px; border-radius:12px;
+  background:rgba(17,24,43,.86); color:#fff; font-size:13px; font-weight:700; text-align:center;
+  opacity:0; transform:translate(-50%, 10px); pointer-events:none; transition:opacity .3s var(--ease), transform .45s var(--spring);
+}
+.toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+/* ───────── texture drawer ───────── */
+.drawer{
+  position:absolute; top:10px; right:10px; bottom:10px; z-index:7; width:min(340px, calc(100% - 20px));
+  display:flex; flex-direction:column; border-radius:16px; background:#fff; overflow:hidden;
+  box-shadow:0 1px 2px rgba(17,24,43,.06), 0 18px 44px rgba(17,24,43,.22), inset 0 0 0 1px rgba(34,40,60,.06);
+  transform:translateX(calc(100% + 24px)); transition:transform .5s var(--ease); visibility:hidden;
+}
+.app[data-drawer="true"] .drawer{ transform:translateX(0); visibility:visible; }
+.app[data-drawer="true"] .zoom,.app[data-drawer="true"] .zoom-level{ opacity:0; pointer-events:none; }
+.dr-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 14px 10px 16px; }
+.dr-title{ font-family:var(--head-font); font-size:15px; font-weight:700; }
+.dr-close{ width:32px; height:32px; border-radius:9px; display:grid; place-items:center; color:var(--muted); }
+.dr-close:hover{ background:var(--bg); color:var(--navy); }
+.dr-close svg{ width:15px; height:15px; }
+.tabs{ position:relative; display:grid; grid-template-columns:1fr 1fr; margin:0 14px; padding:3px; border-radius:12px; background:var(--bg); }
+.tab{ position:relative; z-index:1; height:32px; border-radius:9px; font-size:13px; font-weight:700; color:var(--muted); transition:color .25s; }
+.tab[aria-selected="true"]{ color:var(--navy); }
+.tab-thumb{ position:absolute; top:3px; bottom:3px; left:3px; width:calc(50% - 3px); border-radius:9px; background:#fff; box-shadow:0 1px 3px rgba(17,24,43,.12); transition:transform .4s var(--spring); }
+.app[data-tab="upload"] .tab-thumb{ transform:translateX(100%); }
+.pane{ display:none; flex:1; min-height:0; flex-direction:column; }
+.app[data-tab="library"] .pane-lib,.app[data-tab="upload"] .pane-up{ display:flex; }
+.search{ position:relative; margin:12px 14px 8px; }
+.search svg{ position:absolute; left:11px; top:50%; width:16px; height:16px; margin-top:-8px; color:var(--faint); pointer-events:none; }
+.search input{ width:100%; height:38px; padding:0 12px 0 34px; border-radius:11px; border:1px solid var(--line); background:#fff; font-size:13.5px; outline:none; transition:border-color .2s, box-shadow .2s; }
+.search input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.cats{ display:flex; gap:6px; padding:2px 14px 10px; overflow-x:auto; scrollbar-width:none; flex:0 0 auto; }
+.cats::-webkit-scrollbar{ display:none; }
+.cat{ flex:0 0 auto; height:30px; padding:0 12px; border-radius:999px; font-size:12.5px; font-weight:700; color:var(--muted); background:#fff; box-shadow:inset 0 0 0 1px var(--line); transition:background .2s, color .2s, box-shadow .2s; }
+.cat:hover{ color:var(--navy); }
+.cat[aria-pressed="true"]{ background:var(--navy); color:#fff; box-shadow:none; }
+.grid{ flex:1; min-height:0; overflow-y:auto; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px 8px; align-content:start; padding:2px 14px 14px; }
+.tile{ position:relative; display:flex; flex-direction:column; gap:5px; text-align:left; border-radius:10px; animation:tileIn .4s var(--ease) both; }
+.tile-img{ position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; background:linear-gradient(135deg, #EEF1F8, #E4E8F3); box-shadow:inset 0 0 0 1px rgba(34,40,60,.06); transition:box-shadow .2s, transform .25s var(--ease); }
+.tile-img img{ width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity .4s; }
+.tile-img img.loaded{ opacity:1; }
+.tile:hover .tile-img{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(17,24,43,.14); }
+.tile[aria-pressed="true"] .tile-img{ box-shadow:0 0 0 2.5px var(--accent), 0 8px 18px rgba(99,134,255,.28); }
+.tile-check{ position:absolute; right:6px; top:6px; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; background:var(--accent); color:#fff; opacity:0; transform:scale(.6); transition:opacity .2s, transform .3s var(--spring); }
+.tile-check svg{ width:13px; height:13px; }
+.tile[aria-pressed="true"] .tile-check{ opacity:1; transform:scale(1); }
+.tile-name{ font-size:12px; font-weight:700; line-height:1.25; color:var(--navy); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.empty{ grid-column:1 / -1; padding:30px 8px; text-align:center; color:var(--muted); font-size:13px; }
+.dr-foot{ padding:10px 16px 14px; font-size:12px; color:var(--muted); border-top:1px solid #EEF0F6; }
+.drop{
+  position:relative; margin:14px; flex:1; min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  padding:18px; border-radius:14px; border:1.5px dashed var(--line-2); background:#FBFCFE; text-align:center; transition:border-color .2s, background .2s;
+}
+.drop.over{ border-color:var(--accent); background:var(--accent-soft); }
+.drop-ico{ width:52px; height:52px; border-radius:14px; display:grid; place-items:center; color:var(--accent-ink); background:#fff; box-shadow:0 6px 16px rgba(99,134,255,.18), inset 0 0 0 1px var(--accent-line); }
+.drop-ico svg{ width:24px; height:24px; }
+.drop-title{ font-size:14px; font-weight:700; }
+.drop-title u{ color:var(--accent-ink); text-underline-offset:3px; cursor:pointer; }
+.drop-sub{ font-size:12.5px; color:var(--muted); }
+.drop-prog{ display:none; width:70%; height:5px; border-radius:999px; background:rgba(34,40,60,.1); overflow:hidden; }
+.drop-prog i{ display:block; height:100%; width:0; border-radius:999px; background:linear-gradient(90deg, var(--accent), var(--orange)); transition:width .3s var(--ease); }
+.drop.busy .drop-prog{ display:block; }
+.drop.busy .drop-title,.drop.busy .drop-sub{ opacity:.6; }
+.mine{ display:none; align-items:center; gap:10px; margin:0 14px 14px; padding:8px; border-radius:12px; background:var(--accent-soft); }
+.mine img{ width:44px; height:44px; border-radius:9px; object-fit:cover; }
+.mine span{ font-size:12.5px; font-weight:700; color:var(--accent-ink); }
+.mine.show{ display:flex; }
+
+/* ───────── keyframes ───────── */
+@keyframes cardIn{ from{ opacity:0; translate:0 14px; } to{ opacity:1; translate:0 0; } }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+@keyframes hintIn{ from{ opacity:0; translate:0 4px; } to{ opacity:1; translate:0 0; } }
+@keyframes selPulse{ 0%,100%{ opacity:.52; } 50%{ opacity:.66; } }
+@keyframes nudge{ 0%,100%{ box-shadow:0 0 0 0 rgba(99,134,255,.55); } 50%{ box-shadow:0 0 0 8px rgba(99,134,255,0); } }
+@keyframes chipIn{ from{ opacity:0; transform:scale(.85); } to{ opacity:1; transform:scale(1); } }
+@keyframes tileIn{ from{ opacity:0; translate:0 6px; } to{ opacity:1; translate:0 0; } }
+@keyframes nudgeLeft{ 0%,100%{ translate:0 0; } 50%{ translate:-5px 0; } }
+@keyframes nudgeUp{ 0%,100%{ translate:0 0; } 50%{ translate:0 -5px; } }
+@keyframes guideRing{ 0%{ box-shadow:0 0 0 0 rgba(99,134,255,.55); } 70%,100%{ box-shadow:0 0 0 10px rgba(99,134,255,0); } }
+@keyframes shake{ 0%,100%{ translate:0 0; } 20%{ translate:-5px 0; } 40%{ translate:5px 0; } 60%{ translate:-3px 0; } 80%{ translate:3px 0; } }
+.shake{ animation:shake .4s var(--ease); }
+
+/* ───────── responsive ───────── */
+@media (max-width:560px){
+  /* phones: the card reaches almost to the frame's edges (a lighter shadow, as there's no room for a deep one) */
+  .app{ padding:3px; }
+  .card{ padding:10px; gap:10px; border-radius:16px; box-shadow:0 1px 2px rgba(34,40,60,.05), 0 2px 8px rgba(34,40,60,.06); }
+  .head-badge{ display:none; }
+  .head-title{ font-size:15px; }
+  .toolbar,.fixedbar{ bottom:8px; }
+  .zoom{ top:12px; transform:none; right:10px; }
+  .zoom button{ width:36px; height:36px; }
+  .zoom-level{ right:auto; left:10px; top:10px; }
+  .toast{ bottom:112px; }                            /* clears the wrapped toolbar (Done on its own row) */
+  .grid{ grid-template-columns:repeat(2, 1fr); }
+  .tex-chip{ max-width:150px; }
+  .guide{ gap:10px; padding:8px 12px 8px 8px; }
+  .guide-arrow{ flex-basis:32px; height:32px; }
+  .guide-title{ font-size:13px; }
+  .guide-body{ font-size:12px; }
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" data-phase="idle" data-tool="brush" data-drawer="false" data-tab="library" data-texture="false" data-locked="false" data-nudge="false" data-guide="left">
+  <section class="card" id="card">
+    <header class="head">
+      <div class="head-left">
+        <span class="head-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 20.5c-2.5 0-5-1.4-5-4.2 0-1.9 1.4-2.6 2.4-3.3"></path><path d="M18.4 3.6a2 2 0 0 1 2.8 2.8l-8.3 8.3-3.6.8.8-3.6z"></path></svg></span>
+        <div class="head-text">
+          <h1 class="head-title" id="title">Select the area to change</h1>
+          <p class="head-hint swap" id="hint" aria-live="polite">Paint over the area you want to change.</p>
+        </div>
+      </div>
+      <span class="chip" id="chip"><span class="chip-dot" aria-hidden="true"></span><span id="chipText">Nothing selected</span></span>
+    </header>
+
+    <div class="stage" id="stage">
+      <div class="viewport" id="viewport" data-tool="brush" tabindex="-1">
+        <div class="wrap" id="wrap">
+          <img id="base" alt="" draggable="false">
+          <canvas id="mask"></canvas>
+          <canvas id="edge"></canvas>
+          <svg id="lassoSvg" aria-hidden="true">
+            <polyline class="lasso-under" id="lassoUnder" points=""></polyline>
+            <polyline class="lasso-line" id="lassoLine" points=""></polyline>
+            <line class="lasso-rubber" id="lassoRubber" x1="0" y1="0" x2="0" y2="0" visibility="hidden"></line>
+            <g id="lassoPts"></g>
+          </svg>
+        </div>
+        <div class="cursor" id="cursor" aria-hidden="true" style="height: 40px; width: 40px; margin-top: -20px; margin-left: -20px;"></div>
+      </div>
+
+      <div class="overlay ov-loading"><span class="spin" aria-hidden="true"></span><span data-i18n="opening">Opening the image…</span></div>
+      <div class="overlay ov-error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 3l18 18"></path></svg><span data-i18n="openError">This image could not be opened.</span></div>
+
+      <div class="zoom">
+        <button type="button" class="glass" id="zoomIn" data-i18n-aria="zoomIn" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"></path></svg></button>
+        <button type="button" class="glass" id="zoomOut" data-i18n-aria="zoomOut" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"></path></svg></button>
+      </div>
+      <button type="button" class="glass zoom-level" id="zoomLevel" data-i18n-title="fit" title="Fit to screen"></button>
+
+      <button type="button" class="guide" id="guide" tabindex="-1" aria-hidden="true" aria-label="Next, set up your edit. Now describe the change in the prompt on the left, then press Generate.">
+        <span class="guide-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M11 6l-6 6 6 6"></path></svg></span>
+        <span class="guide-text"><span class="guide-title" id="guideTitle">Next, set up your edit</span><span class="guide-body" id="guideBody">Now describe the change in the prompt on the left, then press Generate.</span></span>
+      </button>
+
+      <!-- editing -->
+      <div class="toolbar" id="toolbar" role="toolbar">
+        <label class="size" id="sizeBox"><span class="sr-only" data-i18n="brushSize">Brush size</span>
+          <span class="size-dot" style="width:5px;height:5px" aria-hidden="true"></span>
+          <input type="range" id="size" min="4" max="160" step="1" value="40" aria-label="Brush size" style="--fill: 23.1%;">
+          <span class="size-dot" style="width:11px;height:11px" aria-hidden="true"></span>
+          <span class="size-val" id="sizeVal">40</span>
+        </label>
+        <span class="sep" aria-hidden="true"></span>
+        <button type="button" class="tb icon" id="undoBtn" data-i18n-aria="undo" data-i18n-title="undo" disabled="" aria-label="Undo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg></button>
+        <button type="button" class="tb icon" id="redoBtn" data-i18n-aria="redo" data-i18n-title="redo" disabled="" aria-label="Redo" title="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"></path><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"></path></svg></button>
+        <button type="button" class="tb" id="clearBtn" disabled="" title="Clear selection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6M14 11v6"></path><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path><path d="M9 7V4h6v3"></path></svg><span class="lbl" data-i18n="clear">Clear selection</span></button>
+        <span class="sep" aria-hidden="true"></span>
+        <button type="button" class="tb" id="cancelBtn" title="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span class="lbl" data-i18n="cancel">Cancel</span></button>
+        <button type="button" class="tb primary" id="doneBtn" disabled=""><span class="btn-spin" aria-hidden="true"></span><svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg><span data-i18n="done">Done</span></button>
+      </div>
+
+      <!-- area fixed -->
+      <div class="fixedbar" id="fixedbar" role="toolbar">
+        <button type="button" class="tb" id="editSelBtn" title="Edit selection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5c-2.5 0-5-1.4-5-4.2 0-1.9 1.4-2.6 2.4-3.3"></path><path d="M18.4 3.6a2 2 0 0 1 2.8 2.8l-8.3 8.3-3.6.8.8-3.6z"></path></svg><span class="lbl" data-i18n="editSelection">Edit selection</span></button>
+        <button type="button" class="tb" id="clearFixedBtn" title="Clear selection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6M14 11v6"></path><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path><path d="M9 7V4h6v3"></path></svg><span class="lbl" data-i18n="clear">Clear selection</span></button>
+        <span class="sep" aria-hidden="true"></span>
+        <button type="button" class="tb accent" id="chooseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span data-i18n="chooseTexture">Choose texture</span></button>
+        <span class="tex-chip" id="texChip"><button type="button" class="tex-open" id="texChipOpen" data-i18n-title="changeTexture" title="Change texture"><img id="texChipImg" alt=""><span id="texChipName"></span></button><button type="button" class="tex-x" id="texChipClear" data-i18n-aria="removeTexture" aria-label="Remove texture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+        <span class="sep" aria-hidden="true"></span>
+        <button type="button" class="tb icon" id="closeBtn" data-i18n-aria="closeEditor" data-i18n-title="closeEditor" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+
+      <div class="toast" id="toast" role="status"></div>
+
+      <!-- texture picker -->
+      <aside class="drawer" id="drawer" aria-labelledby="drawerTitle">
+        <div class="dr-head">
+          <h2 class="dr-title" id="drawerTitle" data-i18n="chooseTexture">Choose texture</h2>
+          <button type="button" class="dr-close" id="drawerClose" data-i18n-aria="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+        </div>
+        <div class="tabs" role="tablist">
+          <span class="tab-thumb" aria-hidden="true"></span>
+          <button type="button" class="tab" role="tab" data-tab="library" aria-selected="true" data-i18n="library">Library</button>
+          <button type="button" class="tab" role="tab" data-tab="upload" aria-selected="false" data-i18n="upload">Upload</button>
+        </div>
+        <div class="pane pane-lib">
+          <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span class="sr-only" data-i18n="search">Search textures</span><input type="search" id="search" autocomplete="off" placeholder="Search textures"></label>
+          <div class="cats" id="cats" role="group"><button type="button" class="cat" aria-pressed="true">All</button><button type="button" class="cat" aria-pressed="false">Brick</button><button type="button" class="cat" aria-pressed="false">Ceramic tiles</button><button type="button" class="cat" aria-pressed="false">Concrete</button><button type="button" class="cat" aria-pressed="false">Decorative</button><button type="button" class="cat" aria-pressed="false">Fabric</button><button type="button" class="cat" aria-pressed="false">Flooring</button><button type="button" class="cat" aria-pressed="false">Ground</button><button type="button" class="cat" aria-pressed="false">Landscape</button><button type="button" class="cat" aria-pressed="false">Leather</button><button type="button" class="cat" aria-pressed="false">Metal</button><button type="button" class="cat" aria-pressed="false">Plaster</button><button type="button" class="cat" aria-pressed="false">Roofing</button><button type="button" class="cat" aria-pressed="false">Stone</button><button type="button" class="cat" aria-pressed="false">Water</button><button type="button" class="cat" aria-pressed="false">Wood</button></div>
+          <div class="grid" id="grid"><button type="button" class="tile" data-id="brick-aged" style="animation-delay: 0s;" aria-label="Aged brick" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./brick-aged.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Aged brick</span></button><button type="button" class="tile" data-id="brick-concrete-block" style="animation-delay: 0.02s;" aria-label="Concrete block" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./brick-concrete-block.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Concrete block</span></button><button type="button" class="tile" data-id="brick-dark" style="animation-delay: 0.04s;" aria-label="Dark brick" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./brick-dark.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Dark brick</span></button><button type="button" class="tile" data-id="brick-red" style="animation-delay: 0.06s;" aria-label="Red brick" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./brick-red.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Red brick</span></button><button type="button" class="tile" data-id="brick-stone-masonry" style="animation-delay: 0.08s;" aria-label="Stone masonry" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./brick-stone-masonry.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Stone masonry</span></button><button type="button" class="tile" data-id="brick-white" style="animation-delay: 0.1s;" aria-label="White brick" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./brick-white.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">White brick</span></button><button type="button" class="tile" data-id="ceramic-black-white-checkerboard" style="animation-delay: 0.12s;" aria-label="Black &amp; white checkerboard" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-black-white-checkerboard.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Black &amp; white checkerboard</span></button><button type="button" class="tile" data-id="ceramic-blue-white-mosaic" style="animation-delay: 0.14s;" aria-label="Blue &amp; white mosaic" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-blue-white-mosaic.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Blue &amp; white mosaic</span></button><button type="button" class="tile" data-id="ceramic-burgundy" style="animation-delay: 0.16s;" aria-label="Burgundy tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-burgundy.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Burgundy tile</span></button><button type="button" class="tile" data-id="ceramic-cobalt-blue-subway" style="animation-delay: 0.18s;" aria-label="Cobalt subway tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-cobalt-blue-subway.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Cobalt subway tile</span></button><button type="button" class="tile" data-id="ceramic-emerald-vertical" style="animation-delay: 0.2s;" aria-label="Emerald vertical tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-emerald-vertical.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Emerald vertical tile</span></button><button type="button" class="tile" data-id="ceramic-glossy-cream" style="animation-delay: 0.22s;" aria-label="Glossy cream tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-glossy-cream.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Glossy cream tile</span></button><button type="button" class="tile" data-id="ceramic-pink-floral" style="animation-delay: 0.24s;" aria-label="Pink floral tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-pink-floral.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Pink floral tile</span></button><button type="button" class="tile" data-id="ceramic-powder-blue" style="animation-delay: 0.24s;" aria-label="Powder blue tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-powder-blue.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Powder blue tile</span></button><button type="button" class="tile" data-id="ceramic-sage-green-scallop" style="animation-delay: 0.24s;" aria-label="Sage green scallop tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-sage-green-scallop.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Sage green scallop tile</span></button><button type="button" class="tile" data-id="ceramic-soft-floral" style="animation-delay: 0.24s;" aria-label="Soft floral tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-soft-floral.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Soft floral tile</span></button><button type="button" class="tile" data-id="ceramic-terracotta" style="animation-delay: 0.24s;" aria-label="Terracotta tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ceramic-terracotta.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Terracotta tile</span></button><button type="button" class="tile" data-id="concrete-exposed" style="animation-delay: 0.24s;" aria-label="Exposed concrete" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./concrete-exposed.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Exposed concrete</span></button><button type="button" class="tile" data-id="concrete-microcement" style="animation-delay: 0.24s;" aria-label="Microcement" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./concrete-microcement.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Microcement</span></button><button type="button" class="tile" data-id="concrete-rough" style="animation-delay: 0.24s;" aria-label="Rough concrete" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./concrete-rough.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Rough concrete</span></button><button type="button" class="tile" data-id="concrete-smooth" style="animation-delay: 0.24s;" aria-label="Smooth concrete" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./concrete-smooth.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Smooth concrete</span></button><button type="button" class="tile" data-id="decorative-acoustic-panel" style="animation-delay: 0.24s;" aria-label="Acoustic panel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-acoustic-panel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Acoustic panel</span></button><button type="button" class="tile" data-id="decorative-fabric-panel" style="animation-delay: 0.24s;" aria-label="Fabric panel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-fabric-panel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Fabric panel</span></button><button type="button" class="tile" data-id="decorative-mesh" style="animation-delay: 0.24s;" aria-label="Mesh" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-mesh.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Mesh</span></button><button type="button" class="tile" data-id="decorative-metal-panel" style="animation-delay: 0.24s;" aria-label="Metal panel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-metal-panel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Metal panel</span></button><button type="button" class="tile" data-id="decorative-perforated-panel" style="animation-delay: 0.24s;" aria-label="Perforated panel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-perforated-panel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Perforated panel</span></button><button type="button" class="tile" data-id="decorative-wall-panel" style="animation-delay: 0.24s;" aria-label="Wall panel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-wall-panel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Wall panel</span></button><button type="button" class="tile" data-id="decorative-wallpaper" style="animation-delay: 0.24s;" aria-label="Wallpaper" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-wallpaper.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Wallpaper</span></button><button type="button" class="tile" data-id="decorative-wood-panel" style="animation-delay: 0.24s;" aria-label="Wood panel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./decorative-wood-panel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Wood panel</span></button><button type="button" class="tile" data-id="fabric-boucle" style="animation-delay: 0.24s;" aria-label="Bouclé" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-boucle.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Bouclé</span></button><button type="button" class="tile" data-id="fabric-canvas" style="animation-delay: 0.24s;" aria-label="Canvas" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-canvas.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Canvas</span></button><button type="button" class="tile" data-id="fabric-cotton" style="animation-delay: 0.24s;" aria-label="Cotton" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-cotton.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Cotton</span></button><button type="button" class="tile" data-id="fabric-green-velvet" style="animation-delay: 0.24s;" aria-label="Green velvet" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-green-velvet.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Green velvet</span></button><button type="button" class="tile" data-id="fabric-linen" style="animation-delay: 0.24s;" aria-label="Linen" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-linen.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Linen</span></button><button type="button" class="tile" data-id="fabric-patterned" style="animation-delay: 0.24s;" aria-label="Patterned fabric" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-patterned.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Patterned fabric</span></button><button type="button" class="tile" data-id="fabric-velvet" style="animation-delay: 0.24s;" aria-label="Velvet" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-velvet.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Velvet</span></button><button type="button" class="tile" data-id="fabric-wool" style="animation-delay: 0.24s;" aria-label="Wool" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./fabric-wool.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Wool</span></button><button type="button" class="tile" data-id="flooring-carpet" style="animation-delay: 0.24s;" aria-label="Carpet" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-carpet.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Carpet</span></button><button type="button" class="tile" data-id="flooring-concrete" style="animation-delay: 0.24s;" aria-label="Concrete floor" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-concrete.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Concrete floor</span></button><button type="button" class="tile" data-id="flooring-grey-wooden" style="animation-delay: 0.24s;" aria-label="Grey wood floor" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-grey-wooden.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Grey wood floor</span></button><button type="button" class="tile" data-id="flooring-hardwood" style="animation-delay: 0.24s;" aria-label="Hardwood" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-hardwood.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Hardwood</span></button><button type="button" class="tile" data-id="flooring-laminate" style="animation-delay: 0.24s;" aria-label="Laminate" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-laminate.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Laminate</span></button><button type="button" class="tile" data-id="flooring-parquet" style="animation-delay: 0.24s;" aria-label="Parquet" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-parquet.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Parquet</span></button><button type="button" class="tile" data-id="flooring-stone" style="animation-delay: 0.24s;" aria-label="Stone floor" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-stone.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Stone floor</span></button><button type="button" class="tile" data-id="flooring-tile" style="animation-delay: 0.24s;" aria-label="Tile floor" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./flooring-tile.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Tile floor</span></button><button type="button" class="tile" data-id="ground-asphalt" style="animation-delay: 0.24s;" aria-label="Asphalt" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-asphalt.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Asphalt</span></button><button type="button" class="tile" data-id="ground-cobblestone" style="animation-delay: 0.24s;" aria-label="Cobblestone" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-cobblestone.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Cobblestone</span></button><button type="button" class="tile" data-id="ground-gravel" style="animation-delay: 0.24s;" aria-label="Gravel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-gravel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Gravel</span></button><button type="button" class="tile" data-id="ground-paving-stones" style="animation-delay: 0.24s;" aria-label="Paving stones" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-paving-stones.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Paving stones</span></button><button type="button" class="tile" data-id="ground-pebbles" style="animation-delay: 0.24s;" aria-label="Pebbles" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-pebbles.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Pebbles</span></button><button type="button" class="tile" data-id="ground-sand" style="animation-delay: 0.24s;" aria-label="Sand" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-sand.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Sand</span></button><button type="button" class="tile" data-id="ground-soil" style="animation-delay: 0.24s;" aria-label="Soil" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./ground-soil.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Soil</span></button><button type="button" class="tile" data-id="landscape-dry-grass" style="animation-delay: 0.24s;" aria-label="Dry grass" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./landscape-dry-grass.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Dry grass</span></button><button type="button" class="tile" data-id="landscape-grass" style="animation-delay: 0.24s;" aria-label="Grass" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./landscape-grass.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Grass</span></button><button type="button" class="tile" data-id="landscape-moss" style="animation-delay: 0.24s;" aria-label="Moss" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./landscape-moss.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Moss</span></button><button type="button" class="tile" data-id="landscape-mulch" style="animation-delay: 0.24s;" aria-label="Mulch" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./landscape-mulch.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Mulch</span></button><button type="button" class="tile" data-id="landscape-rock" style="animation-delay: 0.24s;" aria-label="Rock" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./landscape-rock.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Rock</span></button><button type="button" class="tile" data-id="leather-black" style="animation-delay: 0.24s;" aria-label="Black leather" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./leather-black.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Black leather</span></button><button type="button" class="tile" data-id="leather-dark-brown" style="animation-delay: 0.24s;" aria-label="Dark brown leather" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./leather-dark-brown.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Dark brown leather</span></button><button type="button" class="tile" data-id="leather-natural" style="animation-delay: 0.24s;" aria-label="Natural leather" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./leather-natural.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Natural leather</span></button><button type="button" class="tile" data-id="leather-suede" style="animation-delay: 0.24s;" aria-label="Suede" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./leather-suede.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Suede</span></button><button type="button" class="tile" data-id="metal-aluminum" style="animation-delay: 0.24s;" aria-label="Aluminium" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-aluminum.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Aluminium</span></button><button type="button" class="tile" data-id="metal-black-metal" style="animation-delay: 0.24s;" aria-label="Black metal" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-black-metal.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Black metal</span></button><button type="button" class="tile" data-id="metal-brass" style="animation-delay: 0.24s;" aria-label="Brass" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-brass.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Brass</span></button><button type="button" class="tile" data-id="metal-bronze" style="animation-delay: 0.24s;" aria-label="Bronze" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-bronze.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Bronze</span></button><button type="button" class="tile" data-id="metal-copper" style="animation-delay: 0.24s;" aria-label="Copper" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-copper.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Copper</span></button><button type="button" class="tile" data-id="metal-rusted" style="animation-delay: 0.24s;" aria-label="Rusted metal" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-rusted.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Rusted metal</span></button><button type="button" class="tile" data-id="metal-stainless-steel" style="animation-delay: 0.24s;" aria-label="Stainless steel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-stainless-steel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Stainless steel</span></button><button type="button" class="tile" data-id="metal-steel" style="animation-delay: 0.24s;" aria-label="Steel" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-steel.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Steel</span></button><button type="button" class="tile" data-id="metal-weathered" style="animation-delay: 0.24s;" aria-label="Weathered metal" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./metal-weathered.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Weathered metal</span></button><button type="button" class="tile" data-id="plaster-colored" style="animation-delay: 0.24s;" aria-label="Coloured plaster" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./plaster-colored.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Coloured plaster</span></button><button type="button" class="tile" data-id="plaster-limewash" style="animation-delay: 0.24s;" aria-label="Limewash" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./plaster-limewash.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Limewash</span></button><button type="button" class="tile" data-id="plaster-stucco" style="animation-delay: 0.24s;" aria-label="Stucco" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./plaster-stucco.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Stucco</span></button><button type="button" class="tile" data-id="plaster-venetian" style="animation-delay: 0.24s;" aria-label="Venetian plaster" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./plaster-venetian.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Venetian plaster</span></button><button type="button" class="tile" data-id="plaster-white" style="animation-delay: 0.24s;" aria-label="White plaster" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./plaster-white.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">White plaster</span></button><button type="button" class="tile" data-id="roofing-clay-tile" style="animation-delay: 0.24s;" aria-label="Clay roof tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-clay-tile.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Clay roof tile</span></button><button type="button" class="tile" data-id="roofing-greenery" style="animation-delay: 0.24s;" aria-label="Green roof" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-greenery.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Green roof</span></button><button type="button" class="tile" data-id="roofing-metal" style="animation-delay: 0.24s;" aria-label="Metal roof" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-metal.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Metal roof</span></button><button type="button" class="tile" data-id="roofing-orange-tile" style="animation-delay: 0.24s;" aria-label="Orange roof tile" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-orange-tile.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Orange roof tile</span></button><button type="button" class="tile" data-id="roofing-shingle" style="animation-delay: 0.24s;" aria-label="Shingles" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-shingle.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Shingles</span></button><button type="button" class="tile" data-id="roofing-slate" style="animation-delay: 0.24s;" aria-label="Slate roof" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-slate.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Slate roof</span></button><button type="button" class="tile" data-id="roofing-standing" style="animation-delay: 0.24s;" aria-label="Standing seam" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./roofing-standing.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Standing seam</span></button><button type="button" class="tile" data-id="stone-granite" style="animation-delay: 0.24s;" aria-label="Granite" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-granite.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Granite</span></button><button type="button" class="tile" data-id="stone-limestone" style="animation-delay: 0.24s;" aria-label="Limestone" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-limestone.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Limestone</span></button><button type="button" class="tile" data-id="stone-marble" style="animation-delay: 0.24s;" aria-label="Marble" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-marble.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Marble</span></button><button type="button" class="tile" data-id="stone-natural-stone" style="animation-delay: 0.24s;" aria-label="Natural stone" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-natural-stone.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Natural stone</span></button><button type="button" class="tile" data-id="stone-slate" style="animation-delay: 0.24s;" aria-label="Slate" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-slate.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Slate</span></button><button type="button" class="tile" data-id="stone-terrazzo" style="animation-delay: 0.24s;" aria-label="Terrazzo" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-terrazzo.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Terrazzo</span></button><button type="button" class="tile" data-id="stone-travertine" style="animation-delay: 0.24s;" aria-label="Travertine" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./stone-travertine.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Travertine</span></button><button type="button" class="tile" data-id="water-fountain" style="animation-delay: 0.24s;" aria-label="Fountain" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./water-fountain.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Fountain</span></button><button type="button" class="tile" data-id="water-lake" style="animation-delay: 0.24s;" aria-label="Lake" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./water-lake.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Lake</span></button><button type="button" class="tile" data-id="water-pool" style="animation-delay: 0.24s;" aria-label="Pool water" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./water-pool.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Pool water</span></button><button type="button" class="tile" data-id="water-sea" style="animation-delay: 0.24s;" aria-label="Sea" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./water-sea.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Sea</span></button><button type="button" class="tile" data-id="water-shallow" style="animation-delay: 0.24s;" aria-label="Shallow water" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./water-shallow.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Shallow water</span></button><button type="button" class="tile" data-id="water-wet-surface" style="animation-delay: 0.24s;" aria-label="Wet surface" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./water-wet-surface.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Wet surface</span></button><button type="button" class="tile" data-id="wood-dark" style="animation-delay: 0.24s;" aria-label="Dark wood" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-dark.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Dark wood</span></button><button type="button" class="tile" data-id="wood-oak" style="animation-delay: 0.24s;" aria-label="Oak" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-oak.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Oak</span></button><button type="button" class="tile" data-id="wood-osb" style="animation-delay: 0.24s;" aria-label="OSB" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-osb.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">OSB</span></button><button type="button" class="tile" data-id="wood-painted" style="animation-delay: 0.24s;" aria-label="Painted wood" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-painted.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Painted wood</span></button><button type="button" class="tile" data-id="wood-pine" style="animation-delay: 0.24s;" aria-label="Pine" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-pine.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Pine</span></button><button type="button" class="tile" data-id="wood-plywood" style="animation-delay: 0.24s;" aria-label="Plywood" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-plywood.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Plywood</span></button><button type="button" class="tile" data-id="wood-teak" style="animation-delay: 0.24s;" aria-label="Teak" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-teak.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Teak</span></button><button type="button" class="tile" data-id="wood-walnut" style="animation-delay: 0.24s;" aria-label="Walnut" aria-pressed="false"><span class="tile-img"><img alt="" loading="lazy" draggable="false" src="./wood-walnut.jpg"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span></span><span class="tile-name">Walnut</span></button></div>
+          <p class="dr-foot" data-i18n="drawerFoot">The texture goes on the selected area when you press Generate.</p>
+        </div>
+        <div class="pane pane-up">
+          <div class="drop" id="drop">
+            <span class="drop-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><path d="M7 9l5-5 5 5"></path><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path></svg></span>
+            <p class="drop-title"><span data-i18n="dropLead">Drag &amp; drop, paste, or</span> <u id="browse" role="button" tabindex="0" data-i18n="browse">browse</u></p>
+            <p class="drop-sub" id="dropSub">A photo of the material · JPG, PNG or WEBP · up to 5 MB</p>
+            <span class="drop-prog" aria-hidden="true"><i id="dropBar"></i></span>
+            <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden="">
+          </div>
+          <div class="mine" id="mine"><img id="mineImg" alt=""><span data-i18n="yourTexture">Your texture</span></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var READY_RETRY_MS = 400;
+  var READY_MAX_TRIES = 40;
+  var MASK_MAX = 1536;              // selection resolution (long side)
+  var EXPORT_MAX = 2048;            // image sent to the backend (long side)
+  var GUIDE_DELAY_MS = 900;         // let the chosen texture settle in before the guide slides in
+  var SIZE_MIN = 4, SIZE_MAX = 160, SIZE_DEFAULT = 40;
+  var ZOOM_MAX = 8;
+  var CLOSE_PX = 14;                // lasso: a click this close to the first point closes the shape
+  var START_TIMEOUT_MS = 15000;
+  var COPY_TRIES = 20, COPY_RETRY_MS = 1500;   // a Wix Media copy that isn't ready yet: tried for ~30 s
+  var BUCKET = 'archivinci-user-inputs';
+  var BUCKET_REGION = 'eu-west-2';  // REGION in backend/dragDrop.jsw: change both together
+  var TEXTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  var SEL_COLOR = '#6386FF';
+  var EDGE_COLOR = '#3F5BD8';
+
+  var I18N = {
+    en: {
+      opening: 'Opening the image…', openError: 'This image could not be opened.',
+      titleEdit: 'Select the area to change', titleFixed: 'Area selected',
+      hintBrush: 'Paint over the area you want to change.', hintEraser: 'Paint over the parts to take out of the selection.',
+      hintLasso: 'Click points around the area, then click the first point to close the shape.',
+      hintLassoTouch: 'Tap points around the area, then tap the first point to close the shape.',
+      hintNone: 'Pick a tool below to change the area, or press Done.',
+      closeFirst: 'Close the shape first: click its first point.',
+      hintFixed: 'Describe the change in the prompt on the left (and choose a texture if you like), then press Generate.',
+      guideTitle: 'Next, set up your edit',
+      guideTexLeft: 'Now describe the change in the prompt on the left, then press Generate.',
+      guideTexUp: 'Now describe the change in the prompt above, then press Generate.',
+      hintNudge: 'Select the area to change first, then choose a texture.',
+      hintSaving: 'Saving the selection…',
+      nothing: 'Nothing selected', covered: '{n}% of the image',
+      brush: 'Brush', eraser: 'Erase', lasso: 'Lasso', brushSize: 'Brush size', undo: 'Undo', redo: 'Redo',
+      clear: 'Clear selection', cancel: 'Cancel', done: 'Done', editSelection: 'Edit selection',
+      chooseTexture: 'Choose texture', changeTexture: 'Change texture', removeTexture: 'Remove texture', closeEditor: 'Close', close: 'Close',
+      zoomIn: 'Zoom in', zoomOut: 'Zoom out', fit: 'Fit to screen',
+      library: 'Library', upload: 'Upload', search: 'Search textures', all: 'All',
+      noMatch: 'No textures match “{q}”.', drawerFoot: 'The texture goes on the selected area when you press Generate.',
+      dropLead: 'Drag & drop, paste, or', browse: 'browse', dropSub: 'A photo of the material · JPG, PNG or WEBP · up to {mb} MB',
+      yourTexture: 'Your texture', textureSet: 'Texture: {name}', uploading: 'Uploading…',
+      errType: 'Please use a JPG, PNG or WEBP image.', errSize: 'That image is larger than {mb} MB.',
+      errUpload: 'The upload did not go through. Please try again.', errSave: 'The selection could not be saved. Please try again.',
+      emptySel: 'Paint an area first.', lassoShort: 'Add at least three points.'
+    },
+    es: {
+      opening: 'Abriendo la imagen…', openError: 'No se pudo abrir esta imagen.',
+      titleEdit: 'Selecciona el área que quieres cambiar', titleFixed: 'Área seleccionada',
+      hintBrush: 'Pinta sobre el área que quieres cambiar.', hintEraser: 'Pinta sobre las partes que quieres quitar de la selección.',
+      hintLasso: 'Haz clic en puntos alrededor del área y luego en el primer punto para cerrar la forma.',
+      hintLassoTouch: 'Toca puntos alrededor del área y luego el primer punto para cerrar la forma.',
+      hintNone: 'Elige una herramienta abajo para cambiar el área, o pulsa Listo.',
+      closeFirst: 'Primero cierra la forma: haz clic en su primer punto.',
+      hintFixed: 'Describe el cambio en el prompt de la izquierda (y, si quieres, elige una textura); luego pulsa Generar.',
+      guideTitle: 'Ahora, configura tu edición',
+      guideTexLeft: 'Ahora describe el cambio en el prompt de la izquierda y pulsa Generar.',
+      guideTexUp: 'Ahora describe el cambio en el prompt de arriba y pulsa Generar.',
+      hintNudge: 'Primero selecciona el área que quieres cambiar y luego elige una textura.',
+      hintSaving: 'Guardando la selección…',
+      nothing: 'Nada seleccionado', covered: '{n}% de la imagen',
+      brush: 'Pincel', eraser: 'Borrar', lasso: 'Lazo', brushSize: 'Tamaño del pincel', undo: 'Deshacer', redo: 'Rehacer',
+      clear: 'Borrar selección', cancel: 'Cancelar', done: 'Listo', editSelection: 'Editar selección',
+      chooseTexture: 'Elegir textura', changeTexture: 'Cambiar textura', removeTexture: 'Quitar textura', closeEditor: 'Cerrar', close: 'Cerrar',
+      zoomIn: 'Acercar', zoomOut: 'Alejar', fit: 'Ajustar a la pantalla',
+      library: 'Biblioteca', upload: 'Subir', search: 'Buscar texturas', all: 'Todas',
+      noMatch: 'Ninguna textura coincide con «{q}».', drawerFoot: 'La textura se aplica al área seleccionada cuando pulsas Generar.',
+      dropLead: 'Arrastra y suelta, pega o', browse: 'busca', dropSub: 'Una foto del material · JPG, PNG o WEBP · hasta {mb} MB',
+      yourTexture: 'Tu textura', textureSet: 'Textura: {name}', uploading: 'Subiendo…',
+      errType: 'Usa una imagen JPG, PNG o WEBP.', errSize: 'La imagen supera los {mb} MB.',
+      errUpload: 'No se pudo subir. Inténtalo de nuevo.', errSave: 'No se pudo guardar la selección. Inténtalo de nuevo.',
+      emptySel: 'Primero pinta un área.', lassoShort: 'Añade al menos tres puntos.'
+    },
+    it: {
+      opening: "Apertura dell'immagine…", openError: 'Impossibile aprire questa immagine.',
+      titleEdit: "Seleziona l'area da modificare", titleFixed: 'Area selezionata',
+      hintBrush: "Dipingi sull'area che vuoi modificare.", hintEraser: 'Dipingi sulle parti da togliere dalla selezione.',
+      hintLasso: "Fai clic sui punti attorno all'area, poi sul primo punto per chiudere la forma.",
+      hintLassoTouch: "Tocca i punti attorno all'area, poi il primo punto per chiudere la forma.",
+      hintNone: "Scegli uno strumento qui sotto per modificare l'area, oppure premi Fatto.",
+      closeFirst: 'Prima chiudi la forma: fai clic sul suo primo punto.',
+      hintFixed: 'Descrivi la modifica nel prompt a sinistra (e, se vuoi, scegli una texture), poi premi Genera.',
+      guideTitle: 'Ora imposta la tua modifica',
+      guideTexLeft: 'Ora descrivi la modifica nel prompt a sinistra, poi premi Genera.',
+      guideTexUp: 'Ora descrivi la modifica nel prompt qui sopra, poi premi Genera.',
+      hintNudge: "Prima seleziona l'area da modificare, poi scegli una texture.",
+      hintSaving: 'Salvataggio della selezione…',
+      nothing: 'Nessuna selezione', covered: "{n}% dell'immagine",
+      brush: 'Pennello', eraser: 'Cancella', lasso: 'Lazo', brushSize: 'Dimensione pennello', undo: 'Annulla', redo: 'Ripeti',
+      clear: 'Cancella selezione', cancel: 'Annulla', done: 'Fatto', editSelection: 'Modifica selezione',
+      chooseTexture: 'Scegli texture', changeTexture: 'Cambia texture', removeTexture: 'Rimuovi texture', closeEditor: 'Chiudi', close: 'Chiudi',
+      zoomIn: 'Ingrandisci', zoomOut: 'Riduci', fit: 'Adatta allo schermo',
+      library: 'Libreria', upload: 'Carica', search: 'Cerca texture', all: 'Tutte',
+      noMatch: 'Nessuna texture corrisponde a «{q}».', drawerFoot: "La texture viene applicata all'area selezionata quando premi Genera.",
+      dropLead: 'Trascina e rilascia, incolla o', browse: 'sfoglia', dropSub: 'Una foto del materiale · JPG, PNG o WEBP · fino a {mb} MB',
+      yourTexture: 'La tua texture', textureSet: 'Texture: {name}', uploading: 'Caricamento…',
+      errType: "Usa un'immagine JPG, PNG o WEBP.", errSize: "L'immagine supera i {mb} MB.",
+      errUpload: 'Il caricamento non è riuscito. Riprova.', errSave: 'Impossibile salvare la selezione. Riprova.',
+      emptySel: "Prima dipingi un'area.", lassoShort: 'Aggiungi almeno tre punti.'
+    }
+  };
+
+  var state = {
+    lang: 'en', maxBytes: 5 * 1024 * 1024,
+    mark: { color: '#FF00FF', name: 'magenta', opacity: 1, style: 'fill', width: 0.007 },   // the page's MARK (studioEdit.js): opacity of a fill, width of an outline
+    parts: false,           // the page takes the area's mask and the clean picture too (tx-context parts: true)
+    phase: 'idle',          // idle | loading | edit | fixed | error
+    session: null, baseUrl: null, locked: false, heardFromParent: false,
+    tool: 'brush', size: SIZE_DEFAULT,
+    ops: [], redo: [], live: null, lasso: [], rubber: null,
+    coverage: 0, saving: false, savedVersion: -1, version: 0,
+    texturesAfterDone: false,   // Apply texture pressed on a painted area: the picker opens once Done has saved it
+    guide: 'off',               // next-step guide once a texture is chosen: 'left' | 'up' | 'off' (the page decides)
+    guideTimer: null,
+    view: { fit: 1, zoom: 1, x: 0, y: 0, fitW: 0, fitH: 0 },   // fitW/fitH: the stage size the picture was fitted to
+    library: { categories: [], items: [] }, cat: 'all', query: '',
+    texture: null,          // { id, url, name, en, source, thumb }
+    uploadSeq: 0, uploads: {},
+    nudgeTimer: 0, toastTimer: 0
+  };
+  var base = { img: null, cors: null, w: 0, h: 0, mw: 0, mh: 0 };
+
+  function $(id) { return document.getElementById(id); }
+  var app = $('app'), stage = $('stage'), viewport = $('viewport'), wrap = $('wrap'), baseEl = $('base');
+  var maskCv = $('mask'), edgeCv = $('edge'), mctx = maskCv.getContext('2d'), ectx = edgeCv.getContext('2d');
+  var cursor = $('cursor'), sizeInput = $('size');
+
+  /*──────── helpers ────────*/
+  function t(key, vars) {
+    var dict = I18N[state.lang] || I18N.en;
+    var s = dict[key] != null ? dict[key] : (I18N.en[key] != null ? I18N.en[key] : key);
+    return vars ? s.replace(/\{(\w+)\}/g, function (m, k) { return vars[k] != null ? vars[k] : m; }) : s;
+  }
+  function post(msg) {
+    if (window.parent && window.parent !== window) {
+      try { window.parent.postMessage(msg, '*'); } catch (e) { /* ignore */ }
+    }
+  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function restartClass(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function mb() { return Math.round(state.maxBytes / (1024 * 1024)); }
+  function touchScreen() { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
+  function canvasOf(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+  function showToast(text, ms) {
+    var toast = $('toast');
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(function () { toast.classList.remove('show'); }, ms || 3200);
+  }
+
+  function applyI18n() {
+    document.documentElement.lang = state.lang;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i18n-aria]'), function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i18n-title]'), function (el) { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+    // Hover names, for when the bars show icons only.
+    Array.prototype.forEach.call(document.querySelectorAll('.tb .lbl'), function (l) { l.parentNode.setAttribute('title', l.textContent); });
+    $('search').placeholder = t('search');
+    $('dropSub').textContent = t('dropSub', { mb: mb() });
+    sizeInput.setAttribute('aria-label', t('brushSize'));
+    renderHeader();
+    renderCats();
+    renderGrid();
+    renderTextureChip();
+    renderGuide();
+    fitBars();
+  }
+
+  /*──────── header / state ────────*/
+  function renderHeader() {
+    var fixed = state.phase === 'fixed';
+    $('title').textContent = fixed ? t('titleFixed') : t('titleEdit');
+    var hint;
+    if (state.saving) hint = t('hintSaving');
+    else if (fixed) hint = t('hintFixed');
+    else if (app.getAttribute('data-nudge') === 'true') hint = t('hintNudge');
+    else hint = t({ brush: 'hintBrush', eraser: 'hintEraser', lasso: touchScreen() ? 'hintLassoTouch' : 'hintLasso' }[state.tool] || 'hintNone');
+    var el = $('hint');
+    if (el.textContent !== hint) { el.textContent = hint; restartClass(el, 'swap'); }
+    var pct = state.coverage > 0 ? Math.max(1, Math.round(state.coverage * 100)) : 0;
+    $('chipText').textContent = pct ? t('covered', { n: pct }) : t('nothing');
+    $('chip').classList.toggle('on', pct > 0);
+  }
+
+  function setPhase(phase) {
+    state.phase = phase;
+    app.setAttribute('data-phase', phase);
+    if (phase !== 'edit') hideCursor();
+    if (phase !== 'fixed' && phase !== 'edit') closeDrawer();
+    renderHeader();
+    renderButtons();
+    renderGuide();
+    postState();
+  }
+
+  function postState() {
+    post({ kind: 'tx-state', sessionId: state.session, phase: state.phase, tool: state.tool, coverage: state.coverage, saving: state.saving });
+  }
+
+  function renderButtons() {
+    var has = state.coverage > 0;
+    $('undoBtn').disabled = !state.ops.length && !state.lasso.length;
+    $('redoBtn').disabled = !state.redo.length;
+    $('clearBtn').disabled = !has && !state.lasso.length;
+    $('doneBtn').disabled = !has || state.saving;
+    $('doneBtn').classList.toggle('busy', state.saving);
+    $('sizeBox').classList.toggle('off', state.tool !== 'brush' && state.tool !== 'eraser');
+  }
+
+  /*──────── tools ────────*/
+  // tool: 'brush' | 'eraser' | 'lasso', or null (none: after a lasso shape closes, until a tool is picked).
+  function setTool(tool, fromUser) {
+    if (tool !== null && ['brush', 'eraser', 'lasso'].indexOf(tool) < 0) return;
+    if (tool === 'eraser' && !state.coverage) { postState(); return; }      // nothing to erase yet
+    if (state.tool === 'lasso' && tool !== 'lasso') cancelLasso();
+    state.tool = tool;
+    var name = tool || 'none';
+    app.setAttribute('data-tool', name);
+    viewport.setAttribute('data-tool', name);
+    cursor.classList.toggle('eraser', tool === 'eraser');
+    if (tool !== 'brush' && tool !== 'eraser') hideCursor();
+    renderHeader();
+    renderButtons();
+    if (fromUser && tool) post({ kind: 'tx-tool', sessionId: state.session, tool: tool });
+    postState();
+  }
+
+  function setSize(value) {
+    state.size = clamp(Math.round(value), SIZE_MIN, SIZE_MAX);
+    sizeInput.value = String(state.size);
+    $('sizeVal').textContent = String(state.size);
+    sizeInput.style.setProperty('--fill', ((state.size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN) * 100).toFixed(1) + '%');
+    placeCursorSize();
+  }
+
+  /*──────── selection mask ────────*/
+  function paintOp(ctx, op) {
+    if (op.type === 'clear') { ctx.clearRect(0, 0, base.mw, base.mh); return; }
+    ctx.save();
+    ctx.globalCompositeOperation = op.mode === 'erase' ? 'destination-out' : 'source-over';
+    ctx.fillStyle = ctx.strokeStyle = SEL_COLOR;
+    var p = op.pts, i;
+    ctx.beginPath();
+    if (op.type === 'stroke') {
+      if (p.length <= 2) {
+        ctx.arc(p[0], p[1], op.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.lineWidth = op.size; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.moveTo(p[0], p[1]);
+        for (i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
+        ctx.stroke();
+      }
+    } else if (op.type === 'poly') {
+      ctx.moveTo(p[0], p[1]);
+      for (i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function repaint() {
+    mctx.clearRect(0, 0, base.mw, base.mh);
+    state.ops.forEach(function (op) { paintOp(mctx, op); });
+    selectionChanged();
+  }
+
+  // Outline of the selection: the mask minus the mask shrunk by a couple of pixels.
+  function refreshEdges() {
+    var w = base.mw, h = base.mh;
+    ectx.clearRect(0, 0, w, h);
+    if (!state.coverage) return;
+    var s = scale();
+    var d = Math.max(1, Math.round(1.6 / s));
+    var eroded = canvasOf(w, h), x = eroded.getContext('2d');
+    x.drawImage(maskCv, 0, 0);
+    x.globalCompositeOperation = 'destination-in';
+    [[d, 0], [-d, 0], [0, d], [0, -d]].forEach(function (o) { x.drawImage(maskCv, o[0], o[1]); });
+    ectx.drawImage(maskCv, 0, 0);
+    ectx.globalCompositeOperation = 'destination-out';
+    ectx.drawImage(eroded, 0, 0);
+    ectx.globalCompositeOperation = 'source-in';
+    ectx.fillStyle = EDGE_COLOR;
+    ectx.fillRect(0, 0, w, h);
+    ectx.globalCompositeOperation = 'source-over';
+  }
+
+  // Where the area is, as fractions of the picture: bounding box and centre (for the prompt).
+  function measureArea() {
+    if (!base.mw) return null;
+    var k = Math.min(1, 160 / Math.max(base.mw, base.mh));
+    var w = Math.max(1, Math.round(base.mw * k)), h = Math.max(1, Math.round(base.mh * k));
+    var c = canvasOf(w, h), x = c.getContext('2d');
+    x.drawImage(maskCv, 0, 0, w, h);
+    var data = x.getImageData(0, 0, w, h).data;
+    var n = 0, sx = 0, sy = 0, x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (var py = 0; py < h; py++) {
+      for (var px = 0; px < w; px++) {
+        if (data[(py * w + px) * 4 + 3] <= 96) continue;
+        n += 1; sx += px; sy += py;
+        if (px < x0) x0 = px; if (px > x1) x1 = px;
+        if (py < y0) y0 = py; if (py > y1) y1 = py;
+      }
+    }
+    if (!n) return null;
+    var r = function (v) { return Math.round(v * 100) / 100; };
+    return { x0: r(x0 / w), y0: r(y0 / h), x1: r((x1 + 1) / w), y1: r((y1 + 1) / h), cx: r((sx / n + 0.5) / w), cy: r((sy / n + 0.5) / h) };
+  }
+
+  function measureCoverage() {
+    if (!base.mw) return 0;
+    var k = Math.min(1, 160 / Math.max(base.mw, base.mh));
+    var w = Math.max(1, Math.round(base.mw * k)), h = Math.max(1, Math.round(base.mh * k));
+    var c = canvasOf(w, h), x = c.getContext('2d');
+    x.drawImage(maskCv, 0, 0, w, h);
+    var data = x.getImageData(0, 0, w, h).data, on = 0;
+    for (var i = 3; i < data.length; i += 4) if (data[i] > 96) on += 1;
+    return on / (w * h);
+  }
+
+  function selectionChanged() {
+    state.version += 1;
+    state.coverage = measureCoverage();
+    if (!state.coverage && state.tool === 'eraser') setTool('brush', true);   // nothing left to erase
+    if (state.coverage && app.getAttribute('data-nudge') === 'true') setNudge(false);   // "select the area first": done
+    refreshEdges();
+    renderHeader();
+    renderButtons();
+    postState();
+  }
+
+  function pushOp(op) {
+    state.ops.push(op);
+    state.redo = [];
+    if (op.type !== 'stroke') paintOp(mctx, op);
+    selectionChanged();
+  }
+
+  function undo() {
+    if (state.phase !== 'edit') return;
+    if (state.lasso.length) { state.lasso.splice(-2, 2); renderLasso(); renderButtons(); return; }   // one point = x, y
+    if (!state.ops.length) return;
+    state.redo.push(state.ops.pop());
+    repaint();
+  }
+  function redo() {
+    if (state.phase !== 'edit' || !state.redo.length) return;
+    state.ops.push(state.redo.pop());
+    repaint();
+  }
+  function clearSelection() {
+    if (state.phase === 'fixed') unfix();
+    cancelLasso();
+    if (!state.coverage) return;
+    pushOp({ type: 'clear' });
+  }
+
+  /*──────── view (fit, zoom, pan) ────────*/
+  function scale() { return state.view.fit * state.view.zoom; }
+
+  // Labels, icons only, or two rows — whichever fits the stage (labels differ per language).
+  var barsStale = false;                            // measured while the frame was hidden: redo when shown
+  function fitBars() {
+    var room = stage.clientWidth - 20;
+    if (room <= 0) { barsStale = true; return; }
+    barsStale = false;
+    [$('toolbar'), $('fixedbar')].forEach(function (bar) {
+      bar.classList.remove('compact', 'tight');
+      if (bar.scrollWidth > room) bar.classList.add('compact');
+      if (bar.scrollWidth > room) bar.classList.add('tight');
+    });
+  }
+
+  // The page collapses #textureIframe while it isn't used, and can open a picture before the frame
+  // is shown again. A hidden frame has no size to fit into: fit on its first frame on screen.
+  // (A ResizeObserver can't be relied on for that: the browser renders nothing in a hidden
+  // cross-origin frame, so the observer never sees it shrink, and sees "no change" when it is back.)
+  var fitFrame = 0;
+  function hasRoom() {
+    return window.innerWidth > 1 && window.innerHeight > 1 && stage.clientWidth > 1 && stage.clientHeight > 1;
+  }
+  function fitWhenShown() {
+    if (fitFrame) return;
+    fitFrame = requestAnimationFrame(function () { fitFrame = 0; fitView(); });
+  }
+
+  function fitView() {
+    if (!hasRoom()) { if (base.mw) fitWhenShown(); return; }
+    fitBars();
+    if (!base.mw) return;
+    var r = stage.getBoundingClientRect();
+    state.view.fitW = r.width; state.view.fitH = r.height;
+    var bar = state.phase === 'fixed' ? $('fixedbar') : $('toolbar');
+    var bottom = Math.max(64, bar.offsetHeight + 22);  // room for the toolbar
+    var side = r.width < 480 ? 8 : 16;                  // phones: the picture uses more of the width
+    var availW = Math.max(40, r.width - 2 * side), availH = Math.max(40, r.height - bottom - 20);
+    state.view.fit = Math.min(availW / base.mw, availH / base.mh);
+    state.view.zoom = 1;
+    var s = scale();
+    state.view.x = (r.width - base.mw * s) / 2;
+    state.view.y = 16 + (availH - base.mh * s) / 2;
+    applyView();
+  }
+
+  // Shown again, or the pointer is back: fit again if the stage changed size since the last fit.
+  function refit() {
+    if (!hasRoom()) { fitView(); return; }
+    var r = stage.getBoundingClientRect();
+    if (base.mw && (Math.abs(r.width - state.view.fitW) > 1 || Math.abs(r.height - state.view.fitH) > 1)) fitView();
+    else if (barsStale) fitBars();
+  }
+
+  function clampPan() {
+    var r = stage.getBoundingClientRect(), s = scale();
+    var w = base.mw * s, h = base.mh * s, m = 60;
+    state.view.x = clamp(state.view.x, Math.min(m - w, (r.width - w) / 2), Math.max(r.width - m, (r.width - w) / 2));
+    state.view.y = clamp(state.view.y, Math.min(m - h, (r.height - h) / 2), Math.max(r.height - m, (r.height - h) / 2));
+  }
+
+  function applyView() {
+    clampPan();
+    var s = scale();
+    wrap.style.width = base.mw + 'px';
+    wrap.style.height = base.mh + 'px';
+    wrap.style.transform = 'translate(' + state.view.x + 'px,' + state.view.y + 'px) scale(' + s + ')';
+    var level = $('zoomLevel');
+    level.textContent = Math.round(state.view.zoom * 100) + '%';
+    level.classList.toggle('show', state.view.zoom > 1.001);
+    renderLasso();
+    placeCursorSize();
+  }
+
+  var edgeTimer = 0;
+  function zoomAt(z, px, py) {
+    var s0 = scale();
+    state.view.zoom = clamp(z, 1, ZOOM_MAX);
+    var s1 = scale();
+    state.view.x = px - (px - state.view.x) * (s1 / s0);
+    state.view.y = py - (py - state.view.y) * (s1 / s0);
+    if (state.view.zoom === 1) { fitView(); } else applyView();
+    clearTimeout(edgeTimer);
+    edgeTimer = setTimeout(refreshEdges, 120);        // outline width follows the zoom
+  }
+  function zoomCenter(factor) {
+    var r = stage.getBoundingClientRect();
+    zoomAt(state.view.zoom * factor, r.width / 2, r.height / 2);
+  }
+
+  function toMask(clientX, clientY) {
+    var r = viewport.getBoundingClientRect(), s = scale();
+    return { x: (clientX - r.left - state.view.x) / s, y: (clientY - r.top - state.view.y) / s };
+  }
+
+  /*──────── brush cursor ────────*/
+  function placeCursorSize() {
+    cursor.style.width = cursor.style.height = state.size + 'px';
+    cursor.style.marginLeft = cursor.style.marginTop = (-state.size / 2) + 'px';
+  }
+  function moveCursor(e) {
+    if (state.phase !== 'edit' || (state.tool !== 'brush' && state.tool !== 'eraser') || e.pointerType === 'touch' || panning) { hideCursor(); return; }
+    var r = viewport.getBoundingClientRect();
+    cursor.style.transform = 'translate(' + (e.clientX - r.left) + 'px,' + (e.clientY - r.top) + 'px)';
+    cursor.classList.add('show');
+  }
+  function hideCursor() { cursor.classList.remove('show'); }
+
+  /*──────── lasso ────────*/
+  function renderLasso() {
+    var pts = state.lasso, s = scale() || 1;
+    var list = [];
+    for (var i = 0; i < pts.length; i += 2) list.push(pts[i].toFixed(1) + ',' + pts[i + 1].toFixed(1));
+    var line = $('lassoLine'), under = $('lassoUnder');
+    [line, under].forEach(function (el) { el.setAttribute('points', list.join(' ')); });
+    line.setAttribute('stroke-width', (2 / s).toFixed(3));
+    under.setAttribute('stroke-width', (4.5 / s).toFixed(3));
+    var rub = $('lassoRubber');
+    if (pts.length && state.rubber) {
+      rub.setAttribute('x1', pts[pts.length - 2]); rub.setAttribute('y1', pts[pts.length - 1]);
+      rub.setAttribute('x2', state.rubber.x); rub.setAttribute('y2', state.rubber.y);
+      rub.setAttribute('stroke-width', (1.6 / s).toFixed(3));
+      rub.setAttribute('stroke-dasharray', (6 / s).toFixed(2) + ' ' + (5 / s).toFixed(2));
+      rub.setAttribute('visibility', 'visible');
+    } else rub.setAttribute('visibility', 'hidden');
+    var g = $('lassoPts');
+    var html = '';
+    for (var j = 0; j < pts.length; j += 2) {
+      var first = j === 0;
+      var hot = first && state.rubber && pts.length >= 6 && nearFirst(state.rubber.x, state.rubber.y);
+      html += '<circle class="' + (first ? 'lasso-first' + (hot ? ' hot' : '') : 'lasso-pt') + '" cx="' + pts[j].toFixed(1) + '" cy="' + pts[j + 1].toFixed(1) +
+        '" r="' + ((first ? 6 : 4) / s).toFixed(2) + '" stroke-width="' + (1.6 / s).toFixed(2) + '"></circle>';
+    }
+    g.innerHTML = html;
+  }
+  function nearFirst(x, y) {
+    if (state.lasso.length < 2) return false;
+    var s = scale();
+    return Math.hypot((x - state.lasso[0]) * s, (y - state.lasso[1]) * s) <= CLOSE_PX;
+  }
+  function lassoClick(p) {
+    if (state.lasso.length >= 6 && nearFirst(p.x, p.y)) { closeLasso(); return; }
+    state.lasso.push(clamp(p.x, 0, base.mw), clamp(p.y, 0, base.mh));
+    renderLasso();
+    renderButtons();
+  }
+  function closeLasso() {
+    if (state.lasso.length < 6) { showToast(t('lassoShort')); return; }
+    var pts = state.lasso.slice();
+    state.lasso = []; state.rubber = null;
+    renderLasso();
+    pushOp({ type: 'poly', mode: 'add', pts: pts });
+    setTool(null);                                    // shape done: pick a tool again for the next change
+  }
+  function cancelLasso() {
+    if (!state.lasso.length && !state.rubber) return;
+    state.lasso = []; state.rubber = null;
+    renderLasso();
+    renderButtons();
+  }
+
+  /*──────── pointer input ────────*/
+  var pointers = {}, stroke = null, panning = null, pinch = null, spaceHeld = false, downAt = null;
+
+  function startPan(e) {
+    panning = { x: e.clientX, y: e.clientY, vx: state.view.x, vy: state.view.y };
+    viewport.classList.add('panning', 'grabbing');
+  }
+
+  viewport.addEventListener('pointerdown', function (e) {
+    if ((state.phase !== 'edit' && state.phase !== 'fixed') || state.locked || state.saving) return;
+    pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+    try { viewport.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    try { viewport.focus({ preventScroll: true }); } catch (err) { /* ignore */ }   // keys (undo, tools) work right after drawing
+    var ids = Object.keys(pointers);
+    if (ids.length === 2) {                         // second finger: pinch / pan, drop the stroke in progress
+      if (stroke) { stroke = null; viewport.classList.remove('drawing'); repaint(); }
+      var a = pointers[ids[0]], b = pointers[ids[1]];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom: state.view.zoom, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+      return;
+    }
+    if (e.button === 1 || e.button === 2 || spaceHeld || state.phase === 'fixed' || !state.tool) { startPan(e); e.preventDefault(); return; }   // area fixed / no tool: dragging pans
+    if (e.button > 0) return;
+    var p = toMask(e.clientX, e.clientY);
+    if (state.tool === 'lasso') { downAt = { x: e.clientX, y: e.clientY, p: p }; return; }
+    var size = state.size / scale();
+    stroke = { type: 'stroke', mode: state.tool === 'eraser' ? 'erase' : 'add', size: size, pts: [p.x, p.y] };
+    viewport.classList.add('drawing');
+    paintOp(mctx, stroke);
+    e.preventDefault();
+  });
+
+  viewport.addEventListener('pointermove', function (e) {
+    moveCursor(e);
+    if (pointers[e.pointerId]) pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (pinch) {
+      var ids = Object.keys(pointers);
+      if (ids.length < 2) return;
+      var a = pointers[ids[0]], b = pointers[ids[1]], r = viewport.getBoundingClientRect();
+      var d = Math.hypot(a.x - b.x, a.y - b.y), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+      state.view.x += cx - pinch.cx; state.view.y += cy - pinch.cy;
+      pinch.cx = cx; pinch.cy = cy;
+      if (pinch.d > 0) zoomAt(pinch.zoom * d / pinch.d, cx - r.left, cy - r.top);
+      return;
+    }
+    if (panning) {
+      state.view.x = panning.vx + (e.clientX - panning.x);
+      state.view.y = panning.vy + (e.clientY - panning.y);
+      applyView();
+      return;
+    }
+    if (state.phase !== 'edit') return;
+    if (state.tool === 'lasso') {
+      if (state.lasso.length) { state.rubber = toMask(e.clientX, e.clientY); renderLasso(); }
+      return;
+    }
+    if (!stroke) return;
+    var events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    if (!events.length) events = [e];
+    events.forEach(function (ev) {
+      var p = toMask(ev.clientX, ev.clientY);
+      var n = stroke.pts.length;
+      var lx = stroke.pts[n - 2], ly = stroke.pts[n - 1];
+      if (Math.hypot(p.x - lx, p.y - ly) * scale() < 1.5) return;
+      stroke.pts.push(p.x, p.y);
+      paintOp(mctx, { type: 'stroke', mode: stroke.mode, size: stroke.size, pts: [lx, ly, p.x, p.y] });
+    });
+  });
+
+  function endPointer(e) {
+    delete pointers[e.pointerId];
+    if (pinch) { if (Object.keys(pointers).length < 2) { pinch = null; refreshEdges(); } return; }
+    if (panning) { panning = null; viewport.classList.remove('panning', 'grabbing'); if (spaceHeld) viewport.classList.add('space'); return; }
+    if (state.tool === 'lasso' && downAt && e.type === 'pointerup') {
+      if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 6) lassoClick(downAt.p);
+      downAt = null;
+      return;
+    }
+    downAt = null;
+    if (stroke) {
+      var op = stroke;
+      stroke = null;
+      viewport.classList.remove('drawing');
+      if (e.type === 'pointercancel') { repaint(); return; }
+      pushOp(op);
+    }
+  }
+  viewport.addEventListener('pointerup', endPointer);
+  viewport.addEventListener('pointercancel', endPointer);
+  viewport.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hideCursor(); });
+  viewport.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  viewport.addEventListener('wheel', function (e) {
+    if (state.phase !== 'edit' && state.phase !== 'fixed') return;
+    if (!(e.ctrlKey || e.metaKey)) return;             // ctrl + wheel / trackpad pinch; the plain wheel scrolls the page
+    e.preventDefault();
+    var r = viewport.getBoundingClientRect();
+    zoomAt(state.view.zoom * Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+
+  document.addEventListener('keydown', function (e) {
+    if (state.phase !== 'edit' && state.phase !== 'fixed') return;
+    var tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' && e.target.type !== 'range') return;
+    var k = e.key, mod = e.ctrlKey || e.metaKey;
+    if ((k === 'Enter' || k === ' ') && (tag === 'BUTTON' || tag === 'U')) return;     // the focused control handles it
+    if (k === ' ' && !spaceHeld) { spaceHeld = true; viewport.classList.add('space'); hideCursor(); e.preventDefault(); return; }
+    if (state.phase !== 'edit' || state.locked) return;
+    if (mod && (k === 'z' || k === 'Z')) { if (e.shiftKey) redo(); else undo(); e.preventDefault(); return; }
+    if (mod && (k === 'y' || k === 'Y')) { redo(); e.preventDefault(); return; }
+    if (mod) return;
+    if (k === 'b' || k === 'B') setTool('brush', true);
+    else if (k === 'e' || k === 'E') setTool('eraser', true);
+    else if (k === 'l' || k === 'L') setTool('lasso', true);
+    else if (k === '[') setSize(state.size - 4);
+    else if (k === ']') setSize(state.size + 4);
+    else if (k === 'Escape') cancelLasso();
+    else if (k === 'Backspace' && state.lasso.length) { undo(); e.preventDefault(); }
+    else if (k === 'Enter' && !state.lasso.length && state.coverage) done(false);
+  });
+  document.addEventListener('keyup', function (e) {
+    if (e.key === ' ') { spaceHeld = false; viewport.classList.remove('space'); }
+  });
+
+  /*──────── session ────────*/
+  function resetSession() {
+    state.ops = []; state.redo = []; state.lasso = []; state.rubber = null; stroke = null;
+    state.coverage = 0; state.saving = false; state.texturesAfterDone = false; state.version = 0; state.savedVersion = -1;
+    Object.keys(state.uploads).forEach(function (k) { abortUpload(k); });
+    base = { img: null, cors: null, w: 0, h: 0, mw: 0, mh: 0 };
+    baseEl.removeAttribute('src');
+    mctx.clearRect(0, 0, maskCv.width, maskCv.height);
+    ectx.clearRect(0, 0, edgeCv.width, edgeCv.height);
+    renderLasso();
+    closeDrawer();
+    setNudge(false);
+  }
+
+  function openSession(m) {
+    resetSession();
+    state.session = m.sessionId;
+    state.baseUrl = m.url;
+    if (m.tool) setTool(m.tool === 'eraser' ? 'brush' : m.tool);        // a new area: nothing to erase
+    setPhase('loading');
+    loadBase(m.url, m.sessionId);
+  }
+
+  function loadBase(url, sid) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';                   // readable in a canvas → the marked copy of the image
+    img.onload = function () { if (sid === state.session) { base.cors = img; setBase(img, true); } };
+    img.onerror = function () {
+      if (sid !== state.session) return;
+      var plain = new Image();
+      plain.onload = function () {
+        if (sid !== state.session) return;
+        setBase(plain, false);
+        post({ kind: 'tx-need-copy', sessionId: sid, url: url });   // the page can hand over a Wix Media copy
+      };
+      plain.onerror = function () { if (sid === state.session) setPhase('error'); };
+      plain.src = url;
+    };
+    img.src = url;
+  }
+
+  function setBase(img, cors) {
+    base.img = img;
+    base.w = img.naturalWidth; base.h = img.naturalHeight;
+    var k = Math.min(1, MASK_MAX / Math.max(base.w, base.h));
+    base.mw = Math.max(1, Math.round(base.w * k)); base.mh = Math.max(1, Math.round(base.h * k));
+    [maskCv, edgeCv].forEach(function (c) { c.width = base.mw; c.height = base.mh; });
+    $('lassoSvg').setAttribute('viewBox', '0 0 ' + base.mw + ' ' + base.mh);
+    if (cors) baseEl.crossOrigin = 'anonymous'; else baseEl.removeAttribute('crossorigin');
+    baseEl.src = img.src;
+    fitView();
+    setPhase('edit');
+  }
+
+  // A Wix Media copy is handed over as soon as it is imported, before Wix has finished processing it:
+  // until then it fails to load, so it is tried again for a while.
+  function loadCopy(url, sid, tries) {
+    if (!url) return;
+    tries = tries || 1;
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function () {
+      if (sid !== state.session || img.naturalWidth <= 0) return;
+      if (Math.abs(img.naturalWidth / img.naturalHeight - base.w / base.h) < 0.02) base.cors = img;
+    };
+    img.onerror = function () {
+      if (sid === state.session && !base.cors && tries < COPY_TRIES) setTimeout(function () { loadCopy(url, sid, tries + 1); }, COPY_RETRY_MS);
+    };
+    img.src = url;
+  }
+
+  /*──────── Done: the marked image → S3 ────────*/
+  // "overlay": the image with the selection marked in the mark colour (needs cross-origin access) —
+  // mark.style 'outline': a solid ring on the inside edge of the area, mark.width × the long side wide
+  // (the multi-image edit workflows were tested with an outline); 'fill': the whole area painted at
+  // mark.opacity (below 1 the picture shows through). With it go the black-and-white mask of the area
+  // and the clean picture, the same size, so the edit can change only the area (studioGenerate.js
+  // MASKED_EDITS). "mask": black image, selection in white (always possible), alone.
+  // All JPEG: Qwen (fal) takes PNG only without alpha, and a canvas PNG always has an alpha channel.
+  // cb(blob, info { style, type, width, height, opacity of the paint, outline }, extras { area, clean } | null).
+  function exportSelection(cb) {
+    var k = Math.min(1, EXPORT_MAX / Math.max(base.w, base.h));
+    var W = Math.max(1, Math.round(base.w * k)), H = Math.max(1, Math.round(base.h * k));
+    var style = base.cors ? 'overlay' : 'mask';
+    var sel = canvasOf(W, H), sx = sel.getContext('2d');
+    sx.imageSmoothingEnabled = true;
+    sx.drawImage(maskCv, 0, 0, W, H);
+    var outline = style === 'overlay' && state.mark.style === 'outline';
+    var tint = canvasOf(W, H), tx = tint.getContext('2d');
+    tx.drawImage(outline ? innerRing(sel, Math.max(2, Math.round(state.mark.width * Math.max(W, H)))) : sel, 0, 0);
+    tx.globalCompositeOperation = 'source-in';
+    tx.fillStyle = style === 'overlay' ? state.mark.color : '#FFFFFF';
+    tx.fillRect(0, 0, W, H);
+    var out = canvasOf(W, H), ox = out.getContext('2d');
+    var opacity = style === 'overlay' && !outline ? state.mark.opacity : 1;
+    if (style === 'overlay') ox.drawImage(base.cors, 0, 0, W, H);
+    else { ox.fillStyle = '#000000'; ox.fillRect(0, 0, W, H); }
+    ox.globalAlpha = opacity;
+    ox.drawImage(tint, 0, 0);
+    ox.globalAlpha = 1;
+    var type = 'image/jpeg';
+    var info = { style: style, type: type, width: W, height: H, opacity: opacity, outline: outline };
+    try {
+      out.toBlob(function (blob) {
+        if (!blob && style === 'overlay') { base.cors = null; exportSelection(cb); return; }
+        if (!blob || style !== 'overlay' || !state.parts) { cb(blob, info, null); return; }
+        exportExtras(sel, W, H, function (extras) { cb(blob, info, extras); });
+      }, type, 0.92);
+    } catch (err) {                                   // tainted canvas: fall back to the plain mask
+      if (style === 'overlay') { base.cors = null; exportSelection(cb); } else cb(null);
+    }
+  }
+
+  // The inside edge of the area, px wide: the area minus the area eroded by px (shifted copies on a
+  // circle, kept where they all overlap). Past the picture's edges the area counts as going on, so no
+  // ring runs along them.
+  function innerRing(sel, px) {
+    var W = sel.width, H = sel.height, P = px + 1;
+    var pad = canvasOf(W + 2 * P, H + 2 * P), pc = pad.getContext('2d');
+    pc.drawImage(sel, P, P);
+    pc.drawImage(sel, 0, 0, W, 1, P, 0, W, P);                   // edge rows and columns, stretched outwards
+    pc.drawImage(sel, 0, H - 1, W, 1, P, P + H, W, P);
+    pc.drawImage(sel, 0, 0, 1, H, 0, P, P, H);
+    pc.drawImage(sel, W - 1, 0, 1, H, P + W, P, P, H);
+    pc.drawImage(sel, 0, 0, 1, 1, 0, 0, P, P);                   // corners
+    pc.drawImage(sel, W - 1, 0, 1, 1, P + W, 0, P, P);
+    pc.drawImage(sel, 0, H - 1, 1, 1, 0, P + H, P, P);
+    pc.drawImage(sel, W - 1, H - 1, 1, 1, P + W, P + H, P, P);
+    var eroded = canvasOf(W, H), ex = eroded.getContext('2d');
+    ex.drawImage(pad, -P, -P);
+    ex.globalCompositeOperation = 'destination-in';
+    for (var i = 0; i < 24; i++) {
+      var a = i * Math.PI / 12;
+      ex.drawImage(pad, Math.round(Math.cos(a) * px) - P, Math.round(Math.sin(a) * px) - P);
+    }
+    var ring = canvasOf(W, H), rx = ring.getContext('2d');
+    rx.drawImage(sel, 0, 0);
+    rx.globalCompositeOperation = 'destination-out';
+    rx.drawImage(eroded, 0, 0);
+    return ring;
+  }
+
+  // The black-and-white mask of the area (white = the area) and the clean picture, both W × H, or null
+  // when either can't be made (the edit then goes out without them, as before).
+  function exportExtras(sel, W, H, cb) {
+    var white = canvasOf(W, H), wx = white.getContext('2d');
+    wx.drawImage(sel, 0, 0);
+    wx.globalCompositeOperation = 'source-in';
+    wx.fillStyle = '#FFFFFF';
+    wx.fillRect(0, 0, W, H);
+    var area = canvasOf(W, H), ax = area.getContext('2d');
+    ax.fillStyle = '#000000';
+    ax.fillRect(0, 0, W, H);
+    ax.drawImage(white, 0, 0);
+    var clean = canvasOf(W, H);
+    clean.getContext('2d').drawImage(base.cors, 0, 0, W, H);
+    try {
+      area.toBlob(function (areaBlob) {
+        if (!areaBlob) { cb(null); return; }
+        try {
+          clean.toBlob(function (cleanBlob) { cb(cleanBlob ? { area: areaBlob, clean: cleanBlob } : null); }, 'image/jpeg', 0.92);
+        } catch (err) { cb(null); }
+      }, 'image/jpeg', 0.92);
+    } catch (err) { cb(null); }
+  }
+
+  // thenTextures: Apply texture was pressed on a painted area: open the picker once it is saved.
+  // The marked image, the area's mask and the clean picture upload side by side; the page hears of
+  // the mask and the clean picture first (tx-upload-done 'area' / 'clean'), then of the marked image,
+  // which names them. Without them (upload failed, or a plain mask) the edit goes out as before.
+  function done(thenTextures) {
+    if (state.phase !== 'edit' || state.locked) return;
+    if (state.saving) { if (thenTextures) state.texturesAfterDone = true; return; }
+    if (state.lasso.length) { showToast(t('closeFirst')); restartClass($('doneBtn'), 'shake'); return; }   // an open shape is not an area yet
+    if (!state.coverage) { showToast(t('emptySel')); restartClass($('doneBtn'), 'shake'); return; }
+    setNudge(false);
+    state.texturesAfterDone = !!thenTextures;
+    state.saving = true;
+    renderHeader(); renderButtons(); postState();
+    var version = state.version, sid = state.session, coverage = state.coverage, box = measureArea();
+    exportSelection(function (blob, info, extras) {
+      if (sid !== state.session) return;
+      if (!blob) { saveFailed(); return; }
+      var name = info.style === 'overlay' ? 'selection.jpg' : 'selection-mask.jpg';
+      var parts = { area: null, clean: null }, marked = null, waiting = 1, failed = false;
+      function finish() {
+        if (failed || sid !== state.session || --waiting > 0) return;
+        state.saving = false;
+        state.savedVersion = version;
+        post({ kind: 'tx-upload-done', purpose: 'mask', sessionId: sid, uploadId: marked.id, publicUrl: marked.url,
+               style: info.style, mark: state.mark.name, outline: info.outline, opacity: info.opacity, coverage: coverage, box: box,
+               width: info.width, height: info.height, area: parts.area, clean: parts.clean });
+        setPhase('fixed');
+        if (state.texturesAfterDone) { state.texturesAfterDone = false; openDrawer(); }
+      }
+      if (extras) {
+        ['area', 'clean'].forEach(function (part) {
+          waiting += 1;
+          startUpload(part, extras[part], 'selection-' + part + '.jpg', info.type, function (publicUrl, id) {
+            if (sid !== state.session) return;
+            parts[part] = publicUrl;
+            post({ kind: 'tx-upload-done', purpose: part, sessionId: sid, uploadId: id, publicUrl: publicUrl });
+            finish();
+          }, finish);
+        });
+      }
+      startUpload('mask', blob, name, info.type, function (publicUrl, id) {
+        if (sid !== state.session) return;
+        marked = { url: publicUrl, id: id };
+        finish();
+      }, function () {
+        failed = true;
+        abortUpload('area'); abortUpload('clean');
+        saveFailed();
+      });
+    });
+  }
+
+  function saveFailed() {
+    state.saving = false;
+    state.texturesAfterDone = false;
+    renderHeader(); renderButtons(); postState();
+    showToast(t('errSave'), 4200);
+  }
+
+  function unfix() {
+    if (state.phase !== 'fixed') return;
+    closeDrawer();
+    setPhase('edit');
+  }
+
+  /*──────── uploads (presigned S3 POST, as in the input uploader) ────────*/
+  // Only the ArchiVinci input bucket itself, in the region backend/dragDrop presigns it in: path-style
+  // https://s3.eu-west-2.amazonaws.com/archivinci-user-inputs (what the presign returns) or virtual-hosted
+  // https://archivinci-user-inputs.s3.eu-west-2.amazonaws.com. Anything else is refused: a bucket whose name
+  // merely starts with it (archivinci-user-inputs-x), the same name in another AWS partition, other AWS hosts.
+  function isTrustedUploadUrl(url) {
+    try {
+      var u = new URL(url);
+      if (u.origin === 'https://' + BUCKET + '.s3.' + BUCKET_REGION + '.amazonaws.com') return true;
+      return u.origin === 'https://s3.' + BUCKET_REGION + '.amazonaws.com' &&
+        (u.pathname === '/' + BUCKET || u.pathname.indexOf('/' + BUCKET + '/') === 0);
+    } catch (e) { return false; }
+  }
+
+  function startUpload(purpose, blob, name, type, onDone, onFail) {
+    abortUpload(purpose);
+    state.uploadSeq += 1;
+    var up = { id: state.uploadSeq, blob: blob, name: name, type: type, xhr: null, onDone: onDone, onFail: onFail, timer: 0 };
+    state.uploads[purpose] = up;
+    post({ kind: 'tx-upload-request', purpose: purpose, sessionId: state.session, uploadId: up.id, name: name, type: type, size: blob.size });
+    up.timer = setTimeout(function () { failUpload(purpose, up, 'Timed out waiting for the upload URL'); }, START_TIMEOUT_MS);
+  }
+
+  function failUpload(purpose, up, reason) {
+    if (state.uploads[purpose] !== up) return;
+    clearTimeout(up.timer);
+    if (up.xhr) { try { up.xhr.abort(); } catch (e) { /* ignore */ } }
+    delete state.uploads[purpose];
+    post({ kind: 'tx-upload-error', purpose: purpose, uploadId: up.id, message: reason });
+    if (up.onFail) up.onFail(reason);
+  }
+
+  function abortUpload(purpose) {
+    var up = state.uploads[purpose];
+    if (!up) return;
+    clearTimeout(up.timer);
+    if (up.xhr) { try { up.xhr.abort(); } catch (e) { /* ignore */ } }
+    delete state.uploads[purpose];
+  }
+
+  function onUploadUrl(m) {
+    var up = state.uploads[m.purpose];
+    if (!up || up.id !== m.uploadId || up.xhr) return;
+    if (!isTrustedUploadUrl(m.uploadUrl)) { failUpload(m.purpose, up, 'Refused an upload URL outside the ArchiVinci bucket'); return; }
+    clearTimeout(up.timer);
+    var fd = new FormData();
+    var fields = m.fields || {};
+    Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
+    fd.append('file', up.blob, up.name);              // the file must be the last field
+    var xhr = new XMLHttpRequest();
+    up.xhr = xhr;
+    xhr.open('POST', m.uploadUrl, true);
+    xhr.upload.onprogress = function (e) { if (e.lengthComputable && m.purpose === 'texture') $('dropBar').style.width = Math.min(98, e.loaded / e.total * 100) + '%'; };
+    xhr.onload = function () {
+      if (state.uploads[m.purpose] !== up) return;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        delete state.uploads[m.purpose];
+        up.onDone(m.publicUrl, up.id);
+      } else failUpload(m.purpose, up, 'S3 POST ' + xhr.status);
+    };
+    xhr.onerror = function () { failUpload(m.purpose, up, 'Network/CORS'); };
+    xhr.send(fd);
+  }
+
+  /*──────── textures ────────*/
+  function setNudge(on) {
+    app.setAttribute('data-nudge', on ? 'true' : 'false');
+    clearTimeout(state.nudgeTimer);
+    if (on) state.nudgeTimer = setTimeout(function () { setNudge(false); }, 6000);
+    renderHeader();
+  }
+
+  function openDrawer() {
+    if (state.phase !== 'fixed' || state.locked) return;
+    app.setAttribute('data-drawer', 'true');
+    renderGuide();
+    renderGrid();
+    setTimeout(function () { var s = $('search'); if (app.getAttribute('data-tab') === 'library' && s) try { s.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }, 350);
+  }
+  function closeDrawer() { app.setAttribute('data-drawer', 'false'); renderGuide(); }
+
+  /*──────── next-step guide ────────*/
+  // "Next, set up your edit ←" once a texture is chosen for the selected area: what is left — the
+  // prompt (required) and Generate — is on the left (above, on phones). As the uploader's guide
+  // after an upload, it stays until the page says the user found the controls. Hidden while the
+  // texture picker is open or a render runs.
+  function renderGuide() {
+    var g = $('guide');
+    var want = state.guide !== 'off' && state.phase === 'fixed' && !!state.texture && !state.locked && app.getAttribute('data-drawer') !== 'true';
+    if (state.guide !== 'off') app.setAttribute('data-guide', state.guide);   // kept while fading out
+    var up = app.getAttribute('data-guide') === 'up';
+    var body = t(up ? 'guideTexUp' : 'guideTexLeft');
+    $('guideTitle').textContent = t('guideTitle');
+    $('guideBody').textContent = body;
+    g.setAttribute('aria-label', t('guideTitle') + '. ' + body);
+    if (!want) {
+      hideGuide();
+      clearTimeout(state.guideTimer);
+      state.guideTimer = null;
+      return;
+    }
+    if (g.classList.contains('show') || state.guideTimer) return;          // shown, or about to be
+    state.guideTimer = setTimeout(function () {
+      state.guideTimer = null;
+      if (state.guide === 'off' || state.phase !== 'fixed' || !state.texture || state.locked || app.getAttribute('data-drawer') === 'true') return;
+      g.classList.add('show');
+      g.tabIndex = 0;
+      g.removeAttribute('aria-hidden');
+    }, GUIDE_DELAY_MS);
+  }
+
+  function hideGuide() {
+    var g = $('guide');
+    g.classList.remove('show');
+    g.tabIndex = -1;
+    g.setAttribute('aria-hidden', 'true');
+  }
+
+  function setTab(tab) {
+    app.setAttribute('data-tab', tab);
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === tab ? 'true' : 'false'); });
+  }
+
+  function renderCats() {
+    var box = $('cats');
+    box.innerHTML = '';
+    var cats = [{ key: 'all', label: t('all') }].concat(state.library.categories || []);
+    cats.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cat';
+      b.textContent = c.label;
+      b.setAttribute('aria-pressed', c.key === state.cat ? 'true' : 'false');
+      b.addEventListener('click', function () { state.cat = c.key; renderCats(); renderGrid(); });
+      box.appendChild(b);
+    });
+  }
+
+  function matches(item) {
+    if (state.cat !== 'all' && item.category !== state.cat) return false;
+    var q = state.query.trim().toLowerCase();
+    if (!q) return true;
+    var cat = (state.library.categories || []).filter(function (c) { return c.key === item.category; })[0];
+    var hay = [item.name, item.en, item.category, cat ? cat.label : ''].join(' ').toLowerCase();
+    return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
+  }
+
+  function renderGrid() {
+    var grid = $('grid');
+    var items = (state.library.items || []).filter(matches);
+    grid.innerHTML = '';
+    if (!items.length) {
+      var p = document.createElement('p');
+      p.className = 'empty';
+      p.textContent = t('noMatch', { q: state.query.trim() });
+      grid.appendChild(p);
+      return;
+    }
+    items.forEach(function (item, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'tile';
+      b.setAttribute('data-id', item.id);
+      b.style.animationDelay = Math.min(i, 12) * 0.02 + 's';
+      b.innerHTML = '<span class="tile-img"><img alt="" loading="lazy" draggable="false"><span class="tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></span><span class="tile-name"></span>';
+      var img = b.querySelector('img');
+      img.onload = function () { img.classList.add('loaded'); };
+      img.src = item.thumb || item.url;
+      b.querySelector('.tile-name').textContent = item.name;
+      b.setAttribute('aria-label', item.name);
+      b.addEventListener('click', function () { pickTexture({ id: item.id, url: item.url, thumb: item.thumb, name: item.name, en: item.en, category: item.category, source: 'library' }); });
+      grid.appendChild(b);
+    });
+    markSelected();
+  }
+
+  function markSelected() {
+    var id = state.texture && state.texture.source === 'library' ? state.texture.id : null;
+    Array.prototype.forEach.call(document.querySelectorAll('.tile'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-id') === id ? 'true' : 'false'); });
+  }
+
+  function pickTexture(tex) {
+    state.texture = tex;
+    renderTextureChip();
+    markSelected();
+    post({ kind: 'tx-texture', sessionId: state.session, texture: tex });
+    showToast(t('textureSet', { name: tex.name }));
+    setTimeout(closeDrawer, 320);
+  }
+
+  function clearTexture(notify) {
+    if (!state.texture) return;
+    state.texture = null;
+    renderTextureChip();
+    markSelected();
+    if (notify) post({ kind: 'tx-texture', sessionId: state.session, texture: null });
+  }
+
+  function renderTextureChip() {
+    var tex = state.texture;
+    app.setAttribute('data-texture', tex ? 'true' : 'false');
+    renderGuide();                                   // shown once a texture is chosen
+    fitBars();
+    if (!tex) return;
+    $('texChipImg').src = tex.thumb || tex.url;
+    $('texChipName').textContent = tex.source === 'upload' ? t('yourTexture') : tex.name;
+    fitBars();
+    $('mine').classList.toggle('show', tex.source === 'upload');
+    if (tex.source === 'upload') $('mineImg').src = tex.url;
+  }
+
+  // Upload tab: a photo of the user's own material.
+  function takeTextureFile(file) {
+    if (!file || state.uploads.texture) return;
+    if (TEXTURE_TYPES.indexOf(file.type) < 0) { showToast(t('errType')); post({ kind: 'tx-validation-error', code: 'type' }); return; }
+    if (file.size > state.maxBytes) { showToast(t('errSize', { mb: mb() })); post({ kind: 'tx-validation-error', code: 'size' }); return; }
+    var zone = $('drop');
+    zone.classList.add('busy');
+    $('dropBar').style.width = '4%';
+    var local = URL.createObjectURL(file);
+    startUpload('texture', file, file.name || 'texture.jpg', file.type, function (publicUrl, id) {
+      zone.classList.remove('busy');
+      post({ kind: 'tx-upload-done', purpose: 'texture', sessionId: state.session, uploadId: id, publicUrl: publicUrl, name: file.name });
+      state.texture = { id: null, url: publicUrl, thumb: local, name: t('yourTexture'), en: '', source: 'upload' };
+      renderTextureChip();
+      markSelected();
+      showToast(t('textureSet', { name: t('yourTexture') }));
+      setTimeout(closeDrawer, 320);
+    }, function () {
+      zone.classList.remove('busy');
+      URL.revokeObjectURL(local);
+      showToast(t('errUpload'), 4200);
+    });
+  }
+
+  var drop = $('drop'), fileInput = $('file'), dragDepth = 0;
+  $('browse').addEventListener('click', function () { fileInput.click(); });
+  $('browse').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  drop.addEventListener('click', function (e) { if (e.target === drop) fileInput.click(); });
+  fileInput.addEventListener('change', function () { takeTextureFile(fileInput.files && fileInput.files[0]); fileInput.value = ''; });
+  drop.addEventListener('dragenter', function (e) { e.preventDefault(); dragDepth += 1; drop.classList.add('over'); });
+  drop.addEventListener('dragover', function (e) { e.preventDefault(); });
+  drop.addEventListener('dragleave', function () { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) drop.classList.remove('over'); });
+  drop.addEventListener('drop', function (e) {
+    e.preventDefault(); dragDepth = 0; drop.classList.remove('over');
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) takeTextureFile(files[0]);
+  });
+  document.addEventListener('paste', function (e) {
+    if (app.getAttribute('data-drawer') !== 'true' || app.getAttribute('data-tab') !== 'upload') return;
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file') { takeTextureFile(items[i].getAsFile()); e.preventDefault(); return; }
+    }
+  });
+
+  /*──────── controls ────────*/
+  sizeInput.addEventListener('input', function () { setSize(+sizeInput.value); });
+  $('undoBtn').addEventListener('click', undo);
+  $('redoBtn').addEventListener('click', redo);
+  $('clearBtn').addEventListener('click', clearSelection);
+  $('clearFixedBtn').addEventListener('click', clearSelection);
+  $('doneBtn').addEventListener('click', function () { done(false); });
+  $('editSelBtn').addEventListener('click', function () { unfix(); post({ kind: 'tx-tool', sessionId: state.session, tool: state.tool }); });
+  $('texChipClear').addEventListener('click', function () { clearTexture(true); });
+  $('texChipOpen').addEventListener('click', openDrawer);
+  $('chooseBtn').addEventListener('click', openDrawer);
+  $('guide').addEventListener('click', function () {
+    state.guide = 'off';                 // the page confirms with tx-guide { guide: 'off' }
+    renderGuide();
+    post({ kind: 'tx-guide-click', sessionId: state.session });
+  });
+  $('cancelBtn').addEventListener('click', function () { post({ kind: 'tx-cancel', sessionId: state.session }); });
+  $('closeBtn').addEventListener('click', function () { post({ kind: 'tx-cancel', sessionId: state.session }); });
+  $('drawerClose').addEventListener('click', closeDrawer);
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (b) {
+    b.addEventListener('click', function () { setTab(b.getAttribute('data-tab')); });
+  });
+  $('search').addEventListener('input', function () { state.query = $('search').value; renderGrid(); });
+  $('zoomIn').addEventListener('click', function () { zoomCenter(1.5); });
+  $('zoomOut').addEventListener('click', function () { zoomCenter(1 / 1.5); });
+  $('zoomLevel').addEventListener('click', fitView);
+  stage.addEventListener('pointerdown', function (e) {
+    if (app.getAttribute('data-drawer') === 'true' && !e.target.closest('.drawer,.fixedbar')) closeDrawer();
+  }, true);
+
+  /*──────── page → iframe ────────*/
+  window.addEventListener('message', function (event) {
+    if (event.source !== window.parent) return;     // only the page this iframe is embedded in, not other windows
+    var m = event.data;
+    if (!m || typeof m !== 'object' || typeof m.kind !== 'string' || m.kind.indexOf('tx-') !== 0) return;
+    state.heardFromParent = true;
+    switch (m.kind) {
+      case 'tx-context':
+        if (m.lang) state.lang = I18N[m.lang] ? m.lang : 'en';
+        if (m.maxBytes) state.maxBytes = m.maxBytes;
+        if (m.mark && m.mark.color) {
+          var op = +m.mark.opacity, wd = +m.mark.width;
+          state.mark = { color: m.mark.color, name: m.mark.name || 'magenta', opacity: op > 0 && op < 1 ? Math.max(0.2, op) : 1,
+                         style: m.mark.style === 'outline' ? 'outline' : 'fill', width: wd > 0 ? clamp(wd, 0.002, 0.03) : 0.007 };
+        }
+        if (m.guide) state.guide = m.guide === 'left' || m.guide === 'up' ? m.guide : 'off';
+        state.parts = m.parts === true;
+        applyI18n();
+        break;
+      case 'tx-guide':
+        state.guide = m.guide === 'left' || m.guide === 'up' ? m.guide : 'off';
+        renderGuide();
+        break;
+      case 'tx-library':
+        state.library = { categories: m.categories || [], items: m.items || [] };
+        renderCats(); renderGrid();
+        break;
+      case 'tx-open':
+        if (m.sessionId === state.session && m.url === state.baseUrl && state.phase !== 'idle' && state.phase !== 'error') { if (m.tool) setTool(m.tool); break; }
+        openSession(m);
+        break;
+      case 'tx-tool':
+        if (m.sessionId !== state.session) break;
+        unfix();
+        setTool(m.tool);
+        break;
+      case 'tx-show-textures':                        // Apply texture in the edit panel
+        if (m.sessionId !== state.session) break;
+        if (state.phase === 'fixed') openDrawer();
+        else if (state.phase === 'edit' && state.coverage) done(true);   // a painted area: Done, then the picker
+        else setNudge(true);                        // nothing selected yet
+        break;
+      case 'tx-nudge':
+        if (m.sessionId === state.session) setNudge(true);
+        break;
+      case 'tx-texture':
+        if (!m.texture) clearTexture(false);
+        else { state.texture = m.texture; renderTextureChip(); markSelected(); }
+        break;
+      case 'tx-upload-url': onUploadUrl(m); break;
+      case 'tx-upload-url-error': {
+        var up = state.uploads[m.purpose];
+        if (up && up.id === m.uploadId) failUpload(m.purpose, up, m.code || 'presign');
+        break;
+      }
+      case 'tx-save-failed':
+        if (m.sessionId === state.session && state.phase === 'fixed') { unfix(); showToast(t('errSave'), 4200); }
+        break;
+      case 'tx-base-copy':
+        if (m.sessionId === state.session && !base.cors) loadCopy(m.url, m.sessionId);
+        break;
+      case 'tx-locked':
+        state.locked = !!m.locked;
+        app.setAttribute('data-locked', state.locked ? 'true' : 'false');
+        renderGuide();
+        break;
+      case 'tx-refit':
+        refit();
+        break;
+      case 'tx-close':
+        resetSession();
+        state.session = null; state.baseUrl = null;
+        clearTexture(false);
+        setPhase('idle');
+        break;
+      default: break;
+    }
+  });
+
+  /*──────── boot ────────*/
+  if (window.ResizeObserver) new ResizeObserver(function () { fitView(); }).observe(stage);
+  window.addEventListener('resize', refit);
+  stage.addEventListener('pointerenter', refit);
+  [stage, viewport].forEach(function (el) {         // browsers without overflow:clip
+    el.addEventListener('scroll', function () { if (el.scrollLeft || el.scrollTop) { el.scrollLeft = 0; el.scrollTop = 0; } });
+  });
+  setSize(SIZE_DEFAULT);
+  setTool('brush');
+  setTab('library');
+  applyI18n();
+
+  // For the page's own checks (and tests).
+  window.__tx = {
+    state: function () { return { phase: state.phase, tool: state.tool, size: state.size, coverage: state.coverage, ops: state.ops.length, redo: state.redo.length, lasso: state.lasso.length / 2, zoom: state.view.zoom, saving: state.saving, cors: !!base.cors, texture: state.texture, mask: [base.mw, base.mh] }; },
+    toScreen: function (x, y) { var r = viewport.getBoundingClientRect(), s = scale(); return { x: r.left + state.view.x + x * s, y: r.top + state.view.y + y * s }; }
+  };
+
+  var readyTries = 0;
+  (function sayReady() {
+    if (state.heardFromParent || readyTries >= READY_MAX_TRIES) return;
+    readyTries += 1;
+    post({ kind: 'tx-ready', version: 1 });
+    setTimeout(sayReady, READY_RETRY_MS);
+  })();
+})();
+</script>
+
+</body></html>

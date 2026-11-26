@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<!-- saved from url=(0089)https://www-archivinci-com.filesusr.com/html/80eeb4_e4a79d109c6a225c7959e3437f8787f4.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArchiVinci · Input image</title>
+<!--
+  ArchiVinci — main image uploader for the consolidated generate page.
+  Paste into the #uploadImgIframe HTML element (Embed HTML → Code).
+  Talks to public/studioUpload.js through postMessage; see
+  New change/studio-page/README.md for the message protocol.
+-->
+<style>
+:root{
+  --navy:#22283C; --navy-2:#11214B; --muted:#5B6478; --faint:#8A92A6;
+  --accent:#6386FF; --accent-ink:#3F5BD8; --accent-soft:#EEF2FF; --accent-line:#D7DFFF; --accent-glow:rgba(99,134,255,.28);
+  --orange:#FF8A00; --orange-soft:#FFF3E6;
+  --line:#D9DDE8; --line-2:#C3CADC; --bg:#F6F7FB;
+  --ok:#1BA672; --err:#D63B3B; --err-soft:#FFF4F4; --err-line:#F4C7C7;
+  --radius:20px; --radius-md:16px; --radius-sm:12px;
+  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
+  --head-font:Tahoma, Verdana, Geneva, sans-serif;
+}
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; background:transparent; overflow:hidden; }
+body{ font-family:Arial, Helvetica, sans-serif; color:var(--navy); font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+svg{ display:block; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ───────── layout ───────── */
+.app{ height:100%; display:flex; align-items:center; justify-content:center; padding:24px; }
+.card{
+  position:relative; width:min(100%, 640px); max-height:100%;
+  display:flex; flex-direction:column; gap:14px; padding:18px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:0 1px 2px rgba(34,40,60,.04), 0 14px 36px rgba(34,40,60,.08);
+  transition:width .55s var(--ease);
+  animation:cardIn .6s var(--ease) both;
+}
+.app[data-view="single"][data-phase="busy"] .card,
+.app[data-view="single"][data-phase="ready"] .card,
+.app[data-view="frames"] .card{ width:min(100%, 1040px); height:100%; }
+
+.view{ display:none; }
+.app[data-view="single"][data-phase="idle"] .v-idle,
+.app[data-view="single"][data-phase="busy"] .v-stage,
+.app[data-view="single"][data-phase="ready"] .v-stage{ display:flex; animation:viewIn .45s var(--ease) both; }
+.app[data-view="text"] .v-info{ display:flex; animation:viewIn .45s var(--ease) both; }
+.app[data-view="frames"] .v-frames{ display:flex; animation:viewIn .45s var(--ease) both; }
+
+/* ───────── header ───────── */
+.head{ display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:28px; }
+.head-title{ font-family:var(--head-font); font-weight:700; font-size:16px; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chip{
+  display:inline-flex; align-items:center; gap:8px; height:28px; padding:0 12px 0 10px; flex:0 0 auto;
+  border-radius:999px; background:var(--accent-soft); color:var(--accent-ink);
+  font-size:12.5px; font-weight:700; white-space:nowrap;
+}
+.chip[hidden]{ display:none; }
+.chip-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulse 2.4s ease-out infinite; }
+.chip.swap .chip-text{ animation:chipSwap .45s var(--ease); }
+
+/* ───────── idle: drop zone ───────── */
+.v-idle{ flex-direction:column; gap:14px; min-height:0; }
+.zone{
+  position:relative; min-height:236px; padding:22px 20px 20px; container-type:inline-size;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  border-radius:var(--radius-md); background:var(--bg); cursor:pointer; overflow:hidden;
+  transition:background .3s var(--ease), box-shadow .3s var(--ease);
+}
+.zone::before{ /* soft glow while dragging */
+  content:""; position:absolute; inset:-30%; pointer-events:none; opacity:0;
+  background:radial-gradient(closest-side, rgba(99,134,255,.22), rgba(99,134,255,0));
+  transition:opacity .35s var(--ease);
+}
+.zone:hover{ background:#F2F4FA; }
+.ants{ position:absolute; top:1px; left:1px; width:calc(100% - 2px); height:calc(100% - 2px); overflow:visible; pointer-events:none; }
+.ants rect{ fill:none; stroke:var(--line-2); stroke-width:1.5; stroke-dasharray:8 6; transition:stroke .25s; }
+.zone:hover .ants rect{ stroke:#AEB7CD; }
+
+.stack{ position:relative; width:184px; height:104px; margin:0 auto 14px; flex:0 0 auto; }
+.tile{
+  position:absolute; top:12px; width:72px; height:86px; padding:6px 6px 5px;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  background:#fff; border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 6px 16px rgba(34,40,60,.08);
+  transition:rotate .5s var(--spring), translate .5s var(--spring), scale .5s var(--spring), border-color .3s, box-shadow .3s;
+  animation:tileIn .6s var(--spring) both;
+}
+.tile-art{ flex:1; width:100%; display:grid; place-items:center; border-radius:8px; background:#EEF1F8; color:#9AA3B8; transition:background .3s, color .3s; }
+.tile-art svg{ width:26px; height:26px; }
+.tile-tag{ font-size:9.5px; font-weight:700; letter-spacing:.09em; color:var(--faint); }
+.t1{ left:8px; rotate:-7deg; translate:0 6px; animation-delay:.08s; }
+.t3{ right:8px; rotate:7deg; translate:0 6px; animation-delay:.16s; }
+.t2{ left:calc(50% - 41px); top:0; width:82px; height:98px; z-index:2; animation-delay:0s; }
+.t2 .tile-art svg{ width:30px; height:30px; }
+.zone:hover .t1{ rotate:-13deg; translate:-12px 3px; }
+.zone:hover .t3{ rotate:13deg; translate:12px 3px; }
+.zone:hover .t2{ translate:0 -5px; box-shadow:0 12px 24px rgba(34,40,60,.12); }
+
+.zone-title{ font-size:15px; color:var(--navy); }
+.link{ font-weight:700; text-decoration:underline; text-decoration-color:var(--accent); text-decoration-thickness:2px; text-underline-offset:3px; border-radius:4px; transition:color .2s; }
+.link:hover{ color:var(--accent-ink); }
+.zone .btn-primary{ margin-top:12px; }
+.zone-sub{ margin-top:10px; font-size:12.5px; color:var(--muted); }
+.paste-hint{ position:absolute; right:12px; bottom:10px; font-size:11.5px; color:var(--faint); display:inline-flex; align-items:center; gap:4px; transition:opacity .25s var(--ease), translate .25s var(--ease); }
+kbd{ font-family:inherit; font-size:10.5px; font-weight:700; color:var(--muted); background:#fff; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 5px; }
+
+.zone-copy{ position:relative; align-self:stretch; display:flex; flex-direction:column; align-items:center; }
+.zone-copy > *{ transition:opacity .25s var(--ease), translate .25s var(--ease); }
+.drop-title{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--head-font); font-weight:700; font-size:17px; color:var(--accent-ink);
+  opacity:0; translate:0 8px; pointer-events:none;
+}
+
+/* drag state (idle) */
+.app[data-drag="true"] .zone{ background:var(--accent-soft); box-shadow:inset 0 0 0 1px rgba(99,134,255,.10); }
+.app[data-drag="true"] .zone::before{ opacity:1; }
+.app[data-drag="true"] .ants rect{ stroke:var(--accent); stroke-width:2; animation:march .9s linear infinite; }
+.app[data-drag="true"] .tile{ border-color:var(--accent-line); }
+.app[data-drag="true"] .tile-art{ background:#E3E9FF; color:var(--accent); }
+.app[data-drag="true"] .t1{ rotate:-17deg; translate:-20px 0; }
+.app[data-drag="true"] .t3{ rotate:17deg; translate:20px 0; }
+.app[data-drag="true"] .t2{ scale:1.07; animation:bob 1.3s ease-in-out infinite; box-shadow:0 16px 30px rgba(99,134,255,.28); }
+.app[data-drag="true"] .zone-copy > :not(.drop-title),
+.app[data-drag="true"] .paste-hint{ opacity:0; translate:0 -6px; }
+.app[data-drag="true"] .drop-title{ opacity:1; translate:0 0; }
+
+/* tip */
+.tip{ display:flex; align-items:flex-start; gap:10px; padding:0 4px; font-size:14px; color:var(--navy); }
+.tip-icon{ flex:0 0 28px; height:28px; display:grid; place-items:center; border-radius:50%; background:var(--orange-soft); color:var(--orange); }
+.tip-icon svg{ width:16px; height:16px; }
+.tip-text{ padding-top:4px; }
+.tip-text.swap{ animation:fadeSwap .45s var(--ease); }
+
+/* ───────── buttons ───────── */
+.btn{
+  position:relative; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  height:44px; padding:0 20px; border-radius:var(--radius-sm); font-weight:700; font-size:15px; white-space:nowrap;
+  transition:transform .15s var(--ease), box-shadow .2s, background .2s, border-color .2s, color .2s;
+}
+.btn svg{ width:18px; height:18px; flex:0 0 auto; }
+.btn:active{ transform:scale(.97); }
+.btn:focus-visible,.link:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow); }
+.btn-primary{ background:var(--navy); color:#fff; box-shadow:0 6px 16px rgba(34,40,60,.22); }
+.btn-primary:hover{ background:var(--navy-2); transform:translateY(-1px); box-shadow:0 10px 22px rgba(17,33,75,.28); }
+.btn-primary::after{ /* shine */
+  content:""; position:absolute; top:0; bottom:0; left:-70%; width:45%; pointer-events:none;
+  background:linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.3), rgba(255,255,255,0));
+  transform:skewX(-20deg); transition:left .7s var(--ease);
+}
+.btn-primary:hover::after{ left:135%; }
+.btn-primary .i-lock{ display:none; }
+.app[data-auth="out"] .btn-primary .i-lock{ display:block; }
+.app[data-auth="out"] .btn-primary .i-up{ display:none; }
+.btn-ghost{ height:38px; padding:0 14px; font-size:14px; background:#fff; color:var(--navy); border:1.5px solid var(--line); }
+.btn-ghost:hover{ border-color:var(--navy); background:var(--bg); }
+.btn-ghost svg{ width:16px; height:16px; transition:transform .5s var(--ease); }
+.btn-ghost:hover svg{ transform:rotate(-180deg); }
+.btn-icon{ width:38px; height:38px; padding:0; border-radius:var(--radius-sm); color:var(--muted); border:1.5px solid var(--line); background:#fff; }
+.btn-icon svg{ width:17px; height:17px; }
+.btn-icon:hover{ color:var(--err); border-color:var(--err-line); background:var(--err-soft); }
+
+/* ───────── busy / ready: preview stage ───────── */
+.v-stage{ flex:1; min-height:0; flex-direction:column; gap:12px; }
+.frame{
+  position:relative; flex:1; min-height:120px; border-radius:14px; overflow:hidden;
+  background-color:#F7F8FC; background-image:radial-gradient(#D6DCEA 1px, transparent 1px); background-size:16px 16px;
+  box-shadow:inset 0 0 0 1px #E6E9F2;
+}
+.frame img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+  transition:filter .9s var(--ease), scale .9s var(--ease), opacity .45s var(--ease);
+}
+.frame img:not([src]){ opacity:0; }
+.app[data-phase="busy"] .frame img{ filter:blur(16px) saturate(.75); scale:1.06; }
+.frame.revealing img{ animation:reveal .9s var(--ease) both; }
+.frame::after{ /* sweep after a finished upload */
+  content:""; position:absolute; top:0; bottom:0; left:-60%; width:40%; pointer-events:none; opacity:0;
+  background:linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0));
+  transform:skewX(-18deg);
+}
+.app.just-done .frame::after{ animation:sweep 1.1s var(--ease) .35s both; }
+
+.veil{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  color:#fff; text-align:center; padding:16px; opacity:0; pointer-events:none;
+  background:linear-gradient(180deg, rgba(17,33,75,.20), rgba(17,33,75,.48));
+  transition:opacity .45s var(--ease);
+}
+.veil::after{ /* scan line */
+  content:""; position:absolute; left:0; right:0; top:-30%; height:30%; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.16), rgba(255,255,255,0));
+  animation:scan 2.2s ease-in-out infinite;
+}
+.app[data-phase="busy"] .veil{ opacity:1; }
+.ring{ position:relative; width:76px; height:76px; }
+.ring svg{ width:100%; height:100%; rotate:-90deg; }
+.ring-track{ fill:none; stroke:rgba(255,255,255,.25); stroke-width:5; }
+.ring-bar{ fill:none; stroke:#fff; stroke-width:5; stroke-linecap:round; stroke-dasharray:175.93; stroke-dashoffset:175.93; transition:stroke-dashoffset .35s var(--ease); }
+.app[data-progress="indeterminate"] .ring svg{ animation:spin .9s linear infinite; }
+.app[data-progress="indeterminate"] .ring-bar{ stroke-dashoffset:128; }
+.ring-pct{ position:absolute; inset:0; display:grid; place-items:center; font-family:var(--head-font); font-weight:700; font-size:15px; }
+.veil-text{ font-weight:700; font-size:14px; text-shadow:0 1px 8px rgba(17,33,75,.35); }
+
+.badge-ok{
+  position:absolute; top:12px; left:12px; display:inline-flex; align-items:center; gap:6px;
+  padding:6px 11px 6px 7px; border-radius:999px; background:rgba(255,255,255,.95); color:var(--ok);
+  font-weight:700; font-size:12.5px; box-shadow:0 6px 18px rgba(34,40,60,.16);
+  opacity:0; scale:.6; pointer-events:none;
+}
+.badge-ok .dot{ width:20px; height:20px; border-radius:50%; background:var(--ok); color:#fff; display:grid; place-items:center; }
+.badge-ok svg{ width:13px; height:13px; }
+.app.just-done .frame .badge-ok{ animation:pop .55s var(--spring) .25s both, fadeOut .45s ease 3s forwards; }   /* the single view only: each frame card has its own */
+.app.just-done .frame .badge-ok .dot::after,.fcard.just-done .badge-ok .dot::after{
+  content:""; position:absolute; left:7px; top:6px; width:20px; height:20px; border-radius:50%;
+  box-shadow:0 0 0 2px var(--ok); animation:burst .8s var(--ease) .35s both;
+}
+
+.frame-drop{
+  position:absolute; inset:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  border-radius:12px; border:2px dashed var(--accent); background:rgba(238,242,255,.9); color:var(--accent-ink);
+  font-family:var(--head-font); font-weight:700; font-size:16px; opacity:0; scale:.98; pointer-events:none;
+  transition:opacity .25s var(--ease), scale .25s var(--ease);
+}
+.frame-drop .drop-badge{ width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:#fff; color:var(--accent); box-shadow:0 8px 20px rgba(99,134,255,.3); animation:bob 1.3s ease-in-out infinite; }
+.frame-drop svg{ width:22px; height:22px; }
+.app[data-drag="true"] .frame-drop{ opacity:1; scale:1; }
+
+.frame-broken{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:13.5px; text-align:center; padding:16px; }
+.frame-broken svg{ width:30px; height:30px; color:var(--faint); }
+.frame.broken .frame-broken{ display:flex; }
+.frame.broken img{ opacity:0; }
+
+.bar{ display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:38px; }
+.file{ display:flex; align-items:center; gap:10px; min-width:0; }
+.file-icon{ flex:0 0 36px; height:36px; display:grid; place-items:center; border-radius:10px; background:var(--accent-soft); color:var(--accent); }
+.file-icon svg{ width:18px; height:18px; }
+.file-text{ min-width:0; }
+.file-name{ display:block; font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.file-meta{ display:block; font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:18px; }
+.actions{ display:flex; gap:8px; flex:0 0 auto; transition:opacity .3s; }
+.app[data-phase="busy"] .actions,
+.app[data-locked="true"] .actions{ opacity:0; pointer-events:none; }
+
+/* ───────── video: Start frame | Start & end switch ───────── */
+.head-right{ display:flex; align-items:center; gap:10px; min-width:0; }
+.seg{
+  position:relative; display:inline-grid; grid-auto-flow:column; grid-auto-columns:1fr; padding:3px; flex:0 0 auto;
+  border-radius:12px; background:var(--bg); box-shadow:inset 0 0 0 1px var(--line);
+}
+.seg[hidden]{ display:none; }
+.seg-thumb{
+  position:absolute; top:3px; bottom:3px; left:3px; width:calc(50% - 3px); border-radius:9px; background:#fff;
+  box-shadow:0 2px 8px rgba(34,40,60,.12), 0 0 0 1px rgba(34,40,60,.05); transition:translate .45s var(--spring);
+}
+.app[data-vmode="startEnd"] .seg-thumb{ translate:100% 0; }
+.seg-opt{
+  position:relative; z-index:1; display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  height:32px; padding:0 12px; border-radius:9px; font-size:13px; font-weight:700; color:var(--muted); white-space:nowrap;
+  transition:color .25s;
+}
+.seg-opt svg{ width:16px; height:16px; flex:0 0 auto; }
+.seg-opt[aria-checked="true"]{ color:var(--navy); }
+.seg-opt:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow); }
+.app[data-locked="true"] .seg{ opacity:.6; pointer-events:none; }
+
+/* ───────── video: start & end frames ───────── */
+.v-frames{ flex:1; min-height:0; flex-direction:column; gap:12px; container-type:inline-size; }
+.frames{ position:relative; flex:1; min-height:0; display:grid; grid-template-columns:1fr 56px 1fr; align-items:stretch; }
+.fcard{ position:relative; display:flex; flex-direction:column; gap:8px; min-width:0; min-height:0; }
+.fcard-head{ display:flex; align-items:center; gap:8px; min-height:24px; font-size:13.5px; font-weight:700; }
+.fcard-num{ width:22px; height:22px; border-radius:7px; display:grid; place-items:center; font-size:11.5px; background:var(--accent-soft); color:var(--accent-ink); }
+.fcard[data-slot="end"] .fcard-num{ background:var(--orange-soft); color:#B55F00; }
+.fcard-body{
+  position:relative; flex:1; min-height:150px; border-radius:14px; overflow:hidden;
+  background-color:#F7F8FC; background-image:radial-gradient(#D6DCEA 1px, transparent 1px); background-size:16px 16px;
+  box-shadow:inset 0 0 0 1px #E6E9F2; transition:box-shadow .25s var(--ease), background-color .25s;
+}
+.fdrop{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:14px; text-align:center; color:var(--navy); background:var(--bg); transition:background .25s;
+}
+.fdrop:hover{ background:#F2F4FA; }
+.fdrop:focus-visible{ outline:none; box-shadow:inset 0 0 0 3px var(--accent-glow); }
+.fdrop .ants rect{ stroke-dasharray:7 6; }
+.fdrop-icon{
+  width:52px; height:52px; border-radius:16px; display:grid; place-items:center; background:#fff; color:var(--accent);
+  box-shadow:0 8px 20px rgba(99,134,255,.18), inset 0 0 0 1px var(--accent-line); transition:translate .35s var(--spring);
+}
+.fdrop:hover .fdrop-icon{ translate:0 -3px; }
+.fdrop-icon svg{ width:24px; height:24px; }
+.fdrop-text{ font-size:13.5px; }
+.fdrop-text b{ text-decoration:underline; text-decoration-color:var(--accent); text-decoration-thickness:2px; text-underline-offset:3px; }
+.fdrop-sub{ font-size:12px; color:var(--muted); }
+.fcard[data-phase="busy"] .fdrop,.fcard[data-phase="ready"] .fdrop{ display:none; }
+.fimg{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; pointer-events:none; transition:opacity .45s var(--ease), filter .9s var(--ease), scale .9s var(--ease); }
+.fcard[data-phase="busy"] .fimg,.fcard[data-phase="ready"] .fimg{ opacity:1; }
+.fcard[data-phase="busy"] .fimg{ filter:blur(12px) saturate(.75); scale:1.06; }
+.fcard.revealing .fimg{ animation:reveal .9s var(--ease) both; }
+.fveil{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  color:#fff; text-align:center; opacity:0; pointer-events:none; background:linear-gradient(180deg, rgba(17,33,75,.2), rgba(17,33,75,.5));
+  transition:opacity .45s var(--ease);
+}
+.fcard[data-phase="busy"] .fveil{ opacity:1; }
+.fveil .ring{ width:58px; height:58px; }
+.fveil .ring-pct{ font-size:13px; }
+.fcard[data-progress="indeterminate"] .ring svg{ animation:spin .9s linear infinite; }
+.fcard[data-progress="indeterminate"] .ring-bar{ stroke-dashoffset:128; }
+.fveil-text{ font-weight:700; font-size:13px; text-shadow:0 1px 8px rgba(17,33,75,.35); }
+.factions{ position:absolute; right:10px; bottom:10px; display:flex; gap:6px; opacity:0; pointer-events:none; transition:opacity .25s; }
+.fcard[data-phase="ready"] .factions{ opacity:1; pointer-events:auto; }
+.app[data-locked="true"] .factions{ opacity:0; pointer-events:none; }
+.ftool{
+  width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:#fff;
+  background:rgba(17,24,43,.62); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:background .2s, transform .15s var(--ease);
+}
+.ftool svg{ width:16px; height:16px; }
+.ftool:hover{ background:rgba(17,24,43,.85); }
+.ftool.danger:hover{ background:var(--err); }
+.ftool:active{ transform:scale(.94); }
+.ftool:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow); }
+.fbroken{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; padding:12px; text-align:center; color:var(--muted); font-size:12.5px; }
+.fcard.broken .fbroken{ display:flex; }
+.fcard.broken .fimg{ opacity:0; }
+.fcard .badge-ok{ top:10px; left:10px; }
+.fcard.just-done .badge-ok{ animation:pop .55s var(--spring) .25s both, fadeOut .45s ease 2.6s forwards; }
+.fdrop-over{
+  position:absolute; inset:8px; display:flex; align-items:center; justify-content:center; border-radius:11px;
+  border:2px dashed var(--accent); background:rgba(238,242,255,.92); color:var(--accent-ink);
+  font-family:var(--head-font); font-weight:700; font-size:14px; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.app[data-drag="true"] .fcard-body{ box-shadow:inset 0 0 0 1.5px var(--accent-line); }
+.app[data-drag="true"] .fcard.drag-target .fdrop-over{ opacity:1; }
+
+/* the link between the frames: a timeline arrow + swap */
+.flink{ position:relative; display:flex; align-items:center; justify-content:center; }
+.flink::before{
+  content:""; position:absolute; left:-6px; right:-6px; top:50%; height:2px; translate:0 15px;
+  background:linear-gradient(90deg, var(--accent-line), rgba(255,138,0,.45));
+}
+.fswap{
+  position:relative; width:42px; height:42px; margin-top:30px; border-radius:50%; display:grid; place-items:center;
+  background:#fff; color:var(--navy); box-shadow:0 6px 16px rgba(34,40,60,.14), inset 0 0 0 1px var(--line);
+  transition:transform .5s var(--spring), box-shadow .2s, color .2s, opacity .2s;
+}
+.fswap svg{ width:18px; height:18px; }
+.fswap:hover:not(:disabled){ color:var(--accent-ink); box-shadow:0 8px 22px rgba(99,134,255,.28), inset 0 0 0 1px var(--accent-line); transform:rotate(180deg); }
+.fswap:disabled{ opacity:.45; cursor:default; }
+.fswap:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow); }
+.frames.swapping .fcard[data-slot="main"] .fcard-body{ animation:swapLeft .55s var(--ease); }
+.frames.swapping .fcard[data-slot="end"] .fcard-body{ animation:swapRight .55s var(--ease); }
+.frames-tip{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); padding:0 2px; }
+.frames-tip svg{ width:16px; height:16px; flex:0 0 auto; color:var(--orange); }
+@container (max-width:540px){
+  .frames{ grid-template-columns:1fr; grid-template-rows:1fr 44px 1fr; }
+  .flink::before{ left:50%; right:auto; top:-6px; bottom:-6px; width:2px; height:auto; translate:0 0; background:linear-gradient(180deg, var(--accent-line), rgba(255,138,0,.45)); }
+  .fswap{ margin-top:0; }
+  .fswap svg{ rotate:90deg; }
+  .fcard-body{ min-height:110px; }
+  /* Narrow AND short (phones, where the frame can't be ~550 px tall): stacked cards don't fit, or
+     crowd the guide, so the frames sit side by side, compact: the swap button in the middle, the
+     frame buttons at the bottom, the next-step guide over the top. */
+  @media (max-height:540px){
+    .frames{ grid-template-columns:1fr 34px 1fr; grid-template-rows:none; }
+    .flink::before{ left:-4px; right:-4px; top:50%; bottom:auto; width:auto; height:2px; translate:0 13px; background:linear-gradient(90deg, var(--accent-line), rgba(255,138,0,.45)); }
+    .fswap{ width:32px; height:32px; margin:26px 0 0; }   /* centred on the pictures (below the 20 px heads) */
+    .fswap svg{ rotate:0deg; width:15px; height:15px; }
+    .fcard{ gap:6px; }
+    .fcard-head{ min-height:20px; gap:6px; font-size:12.5px; white-space:nowrap; }
+    .fcard-num{ width:20px; height:20px; border-radius:6px; font-size:11px; }
+    .fcard-body{ min-height:0; border-radius:12px; }
+    .fdrop{ gap:4px; padding:8px; }
+    .fdrop-icon{ width:34px; height:34px; border-radius:11px; }
+    .fdrop-icon svg{ width:17px; height:17px; }
+    .fdrop-text{ font-size:12px; line-height:1.3; }
+    .fdrop-sub{ display:none; }
+    .fveil{ gap:6px; }
+    .fveil .ring{ width:40px; height:40px; }
+    .fveil-text{ font-size:11.5px; }
+    .fcard .badge-ok{ top:6px; left:6px; }
+    .factions{ right:6px; bottom:6px; gap:4px; }
+    .ftool{ width:30px; height:30px; border-radius:9px; }
+    .ftool svg{ width:15px; height:15px; }
+    .frames-tip{ display:none; }
+  }
+}
+
+/* ───────── next-step guide (image ready → configure on the left) ───────── */
+.guide{
+  position:absolute; z-index:2; left:14px; top:50%; max-width:min(310px, calc(100% - 28px));
+  display:flex; align-items:center; gap:12px; padding:10px 16px 10px 10px; text-align:left;
+  border-radius:16px; color:#fff; background:rgba(17,24,43,.86);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  box-shadow:0 16px 36px rgba(17,24,43,.30), inset 0 0 0 1px rgba(255,255,255,.08);
+  opacity:0; translate:22px -50%; pointer-events:none; visibility:hidden;
+  transition:opacity .45s var(--ease), translate .7s var(--spring), background .2s, visibility 0s linear .7s;
+}
+.guide.show{ opacity:1; translate:0 -50%; pointer-events:auto; visibility:visible; transition:opacity .45s var(--ease), translate .7s var(--spring), background .2s; }
+.guide:hover{ background:rgba(17,24,43,.94); }
+.guide:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-glow), 0 16px 36px rgba(17,24,43,.30); }
+.app[data-guide="up"] .guide{ top:14px; right:14px; width:max-content; margin-inline:auto; translate:0 -14px; }
+.app[data-guide="up"] .guide.show{ translate:0 0; }
+.app[data-guide="down"] .guide{ top:auto; bottom:14px; right:14px; width:max-content; margin-inline:auto; translate:0 14px; }
+.app[data-guide="down"] .guide.show{ translate:0 0; }
+.app[data-guide="down"] #guideFrames{ bottom:62px; }   /* start & end: clear of the end frame's replace / remove buttons */
+@media (max-height:540px){   /* short frames: at the top, as 'up' does (the swap and frame buttons are at the bottom there) */
+  .app[data-guide="down"] #guideFrames{ top:14px; bottom:auto; translate:0 -14px; }
+  .app[data-guide="down"] #guideFrames.show{ translate:0 0; }
+}
+.app[data-drag="true"] .guide{ opacity:0; pointer-events:none; }
+.guide-arrow{
+  position:relative; flex:0 0 38px; height:38px; border-radius:50%; display:grid; place-items:center;
+  background:var(--accent); color:#fff; box-shadow:0 6px 16px rgba(99,134,255,.45);
+}
+.guide-arrow::before{ content:""; position:absolute; inset:0; border-radius:50%; animation:guideRing 2s ease-out infinite; }
+.guide-arrow svg{ width:20px; height:20px; animation:nudgeLeft 1.5s var(--ease) infinite; }
+.app[data-guide="up"] .guide-arrow svg{ rotate:90deg; animation-name:nudgeUp; }
+.app[data-guide="down"] .guide-arrow svg{ rotate:-90deg; animation-name:nudgeDown; }
+.guide-text{ min-width:0; }
+.guide-title{ display:block; font-family:var(--head-font); font-weight:700; font-size:14px; letter-spacing:-.01em; }
+.guide-body{ display:block; margin-top:1px; font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.8); }
+
+/* ───────── text-only module (Imagine) ───────── */
+.v-info{ flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; padding:34px 20px 30px; border-radius:var(--radius-md); background:var(--bg); }
+.info-icon{
+  width:64px; height:64px; display:grid; place-items:center; border-radius:20px; margin-bottom:6px;
+  background:linear-gradient(140deg, #fff, var(--accent-soft)); color:var(--accent);
+  box-shadow:inset 0 0 0 1px var(--accent-line), 0 10px 24px rgba(99,134,255,.18);
+  animation:float 3.4s ease-in-out infinite;
+}
+.info-icon svg{ width:30px; height:30px; }
+.info-title{ font-family:var(--head-font); font-size:18px; font-weight:700; letter-spacing:-.01em; }
+.info-text{ max-width:400px; font-size:14px; color:var(--muted); }
+
+/* ───────── toast ───────── */
+.toast{
+  position:absolute; top:10px; left:10px; right:10px; z-index:5; min-height:48px;
+  display:flex; align-items:center; gap:10px; padding:8px 8px 8px 14px;
+  background:#fff; border:1px solid var(--err-line); border-radius:14px; color:var(--err);
+  font-size:13.5px; font-weight:700; box-shadow:0 14px 30px rgba(34,40,60,.16);
+  opacity:0; translate:0 -14px; pointer-events:none;
+  transition:opacity .25s var(--ease), translate .45s var(--spring);
+}
+.toast.info{ border-color:var(--accent-line); color:var(--accent-ink); }
+.toast.show{ opacity:1; translate:0 0; pointer-events:auto; }
+.toast #toastText{ flex:1; min-width:0; }
+.toast > svg{ width:18px; height:18px; flex:0 0 auto; }
+.toast-close{ width:26px; height:26px; flex:0 0 auto; display:grid; place-items:center; border-radius:8px; color:var(--faint); }
+.toast-close:hover{ background:var(--bg); color:var(--navy); }
+.toast-close svg{ width:14px; height:14px; }
+.card.shake{ animation:shake .45s var(--ease); }
+
+/* ───────── states: logged out / locked ───────── */
+.app[data-locked="true"] .zone{ cursor:default; opacity:.6; }
+.app[data-locked="true"] .zone .btn,
+.app[data-locked="true"] .zone .link{ pointer-events:none; }
+
+/* ───────── keyframes ───────── */
+@keyframes cardIn{ from{ opacity:0; translate:0 14px; } to{ opacity:1; translate:0 0; } }
+@keyframes viewIn{ from{ opacity:0; translate:0 8px; } to{ opacity:1; translate:0 0; } }
+@keyframes tileIn{ from{ opacity:0; scale:.7; } to{ opacity:1; scale:1; } }
+@keyframes bob{ 0%,100%{ translate:0 -8px; } 50%{ translate:0 -14px; } }
+@keyframes march{ to{ stroke-dashoffset:-28; } }
+@keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(99,134,255,.45); } 70%,100%{ box-shadow:0 0 0 7px rgba(99,134,255,0); } }
+@keyframes chipSwap{ from{ opacity:0; translate:0 6px; } to{ opacity:1; translate:0 0; } }
+@keyframes fadeSwap{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes spin{ to{ rotate:270deg; } }
+@keyframes scan{ 0%{ top:-30%; } 100%{ top:100%; } }
+@keyframes reveal{ from{ opacity:0; filter:blur(12px); scale:1.04; } to{ opacity:1; filter:blur(0); scale:1; } }
+@keyframes sweep{ 0%{ left:-60%; opacity:0; } 15%{ opacity:1; } 100%{ left:130%; opacity:0; } }
+@keyframes pop{ from{ opacity:0; scale:.6; } to{ opacity:1; scale:1; } }
+@keyframes fadeOut{ to{ opacity:0; scale:.96; } }
+@keyframes burst{ from{ opacity:.9; scale:1; } to{ opacity:0; scale:2.4; } }
+@keyframes float{ 0%,100%{ translate:0 0; } 50%{ translate:0 -6px; } }
+@keyframes swapLeft{ 0%{ translate:0 0; } 45%{ translate:14px 0; opacity:.55; } 100%{ translate:0 0; } }
+@keyframes swapRight{ 0%{ translate:0 0; } 45%{ translate:-14px 0; opacity:.55; } 100%{ translate:0 0; } }
+@keyframes nudgeLeft{ 0%,100%{ translate:0 0; } 50%{ translate:-5px 0; } }
+@keyframes nudgeUp{ 0%,100%{ translate:0 0; } 50%{ translate:0 -5px; } }
+@keyframes nudgeDown{ 0%,100%{ translate:0 0; } 50%{ translate:0 5px; } }
+@keyframes guideRing{ 0%{ box-shadow:0 0 0 0 rgba(99,134,255,.55); } 70%,100%{ box-shadow:0 0 0 10px rgba(99,134,255,0); } }
+@keyframes shake{ 0%,100%{ translate:0 0; } 20%{ translate:-7px 0; } 40%{ translate:6px 0; } 60%{ translate:-4px 0; } 80%{ translate:2px 0; } }
+
+/* ───────── responsive ───────── */
+@media (max-width:560px){
+  .app{ padding:12px; }
+  .card{ padding:14px; gap:12px; border-radius:16px; }
+  .zone{ min-height:210px; padding:18px 14px; }
+  .stack{ scale:.86; margin-bottom:6px; }
+  .zone .btn-primary{ width:100%; }
+  .tip{ font-size:13px; }
+  .bar{ flex-wrap:wrap; }
+  .btn-ghost span{ display:none; }
+  .btn-ghost{ width:38px; padding:0; }
+  .guide{ gap:10px; padding:8px 12px 8px 8px; }
+  .head{ flex-wrap:wrap; }
+  .seg-opt{ height:30px; padding:0 10px; font-size:12.5px; }
+  .seg-opt svg{ display:none; }
+  .guide-arrow{ flex-basis:32px; height:32px; }
+  .guide-title{ font-size:13px; }
+  .guide-body{ font-size:12px; }
+}
+@media (max-height:420px){
+  .app{ padding:12px; }
+  .card{ padding:14px; gap:10px; }
+  .tip{ display:none; }
+  .stack{ display:none; }
+  .zone{ min-height:0; padding:18px 14px; }
+}
+@media (max-height:300px){
+  .head,.zone-sub,.paste-hint{ display:none; }
+}
+@media (hover:none){
+  .paste-hint{ display:none; }
+}
+@container (max-width:520px){
+  .paste-hint{ display:none; }
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" data-mode="upload" data-view="single" data-vmode="start" data-phase="ready" data-drag="false" data-auth="in" data-locked="false" data-progress="indeterminate" data-guide="left">
+  <section class="card" id="card">
+
+    <header class="head">
+      <h1 class="head-title" id="headTitle">Input image*</h1>
+      <div class="head-right">
+        <div class="seg" id="seg" role="radiogroup" hidden="" aria-label="Video mode">
+          <span class="seg-thumb" aria-hidden="true"></span>
+          <button type="button" class="seg-opt" role="radio" data-vmode="start" aria-checked="true" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><path d="M10 9.5v5l4-2.5z"></path></svg><span data-i18n="modeStart">Start frame</span></button>
+          <button type="button" class="seg-opt" role="radio" data-vmode="startEnd" aria-checked="false" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="8" height="12" rx="2"></rect><rect x="14" y="6" width="8" height="12" rx="2"></rect><path d="M10.5 12h3"></path></svg><span data-i18n="modeStartEnd">Start &amp; end</span></button>
+        </div>
+        <span class="chip" id="chip"><span class="chip-dot" aria-hidden="true"></span><span class="chip-text" id="chipText">Exterior</span></span>
+      </div>
+    </header>
+
+    <!-- idle: drop zone -->
+    <div class="view v-idle">
+      <div class="zone" id="zone">
+        <svg class="ants" aria-hidden="true"><rect x="0" y="0" width="100%" height="100%" rx="15" ry="15"></rect></svg>
+        <div class="stack" aria-hidden="true">
+          <div class="tile t1"><div class="tile-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18.5"></path></svg></div><span class="tile-tag">JPG</span></div>
+          <div class="tile t2"><div class="tile-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18.5"></path></svg></div><span class="tile-tag">PNG</span></div>
+          <div class="tile t3"><div class="tile-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18.5"></path></svg></div><span class="tile-tag">WEBP</span></div>
+        </div>
+        <div class="zone-copy">
+        <p class="zone-title"><span data-i18n="dropLead">Drag &amp; drop, paste, or</span> <button type="button" class="link" id="browseLink" data-i18n="browse">browse</button></p>
+        <button type="button" class="btn btn-primary" id="uploadBtn">
+          <svg class="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"></path><path d="M7.5 8.5L12 4l4.5 4.5"></path><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path></svg>
+          <svg class="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+          <span id="uploadBtnText">Upload image</span>
+        </button>
+        <p class="zone-sub" id="formats">JPG, PNG or WEBP · up to 5 MB</p>
+        <p class="drop-title" data-i18n="dropHere">Drop your image here</p>
+        </div>
+        <span class="paste-hint" aria-hidden="true"><kbd id="pasteKey">Ctrl</kbd>+<kbd>V</kbd><span data-i18n="toPaste">to paste</span></span>
+      </div>
+      <div class="tip">
+        <span class="tip-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 21h4"></path><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2l.1.2h4.8l.1-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"></path></svg></span>
+        <p class="tip-text swap" id="hint">Upload a 3D view, elevation or photo of the building. Floor plans aren't supported.</p>
+      </div>
+    </div>
+
+    <!-- busy + ready: preview stage -->
+    <div class="view v-stage">
+      <div class="frame revealing" id="frame">
+        <img id="preview" alt="" draggable="false" src="./80eeb4_f7798dd6a8324023b23a92fd1924339a~mv2.jpg">
+        <div class="frame-broken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 3l18 18"></path></svg><span data-i18n="errLoad">This image could not be displayed.</span></div>
+        <div class="veil" aria-hidden="true">
+          <div class="ring"><svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="28"></circle><circle class="ring-bar" id="ringBar" cx="32" cy="32" r="28"></circle></svg><span class="ring-pct" id="ringPct"></span></div>
+          <p class="veil-text" id="veilText"></p>
+        </div>
+        <span class="badge-ok" aria-hidden="true"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span><span data-i18n="uploaded">Uploaded</span></span>
+        <button type="button" class="guide" id="guide" tabindex="-1" aria-hidden="true" aria-label="Next, set up your render. Pick your options on the left, then press Generate.">
+          <span class="guide-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M11 6l-6 6 6 6"></path></svg></span>
+          <span class="guide-text"><span class="guide-title" id="guideTitle">Next, set up your render</span><span class="guide-body" id="guideBody">Pick your options on the left, then press Generate.</span></span>
+        </button>
+        <div class="frame-drop" aria-hidden="true">
+          <span class="drop-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="M7.5 10.5L12 15l4.5-4.5"></path><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path></svg></span>
+          <span data-i18n="dropReplace">Drop to replace the image</span>
+        </div>
+      </div>
+      <div class="bar">
+        <div class="file">
+          <span class="file-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18.5"></path></svg></span>
+          <div class="file-text"><span class="file-name" id="fileName" title="Current input image">Current input image</span><span class="file-meta" id="fileMeta">1920 × 1080 px</span></div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="replaceBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 20v-4h-4"></path></svg><span data-i18n="replace">Replace</span></button>
+          <button type="button" class="btn btn-icon" id="removeBtn" data-i18n-aria="remove" data-i18n-title="remove" aria-label="Remove image" title="Remove image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6M14 11v6"></path><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- video, start & end frames: two slots -->
+    <div class="view v-frames">
+      <div class="frames" id="frames">
+      <div class="fcard revealing" data-slot="main" data-phase="ready" data-progress="indeterminate" id="fcard-main">
+        <div class="fcard-head"><span class="fcard-num">1</span><span data-i18n="startLabel">Start frame</span></div>
+        <div class="fcard-body">
+          <button type="button" class="fdrop" data-pick="main">
+            <svg class="ants" aria-hidden="true"><rect x="0" y="0" width="100%" height="100%" rx="13" ry="13"></rect></svg>
+            <span class="fdrop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"></path><path d="M7.5 8.5L12 4l4.5 4.5"></path><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path></svg></span>
+            <span class="fdrop-text"><span data-i18n="dropOr">Drop, paste or</span> <b data-i18n="browse">browse</b></span>
+            <span class="fdrop-sub" data-formats="">JPG, PNG or WEBP · up to 5 MB</span>
+          </button>
+          <img class="fimg" alt="" draggable="false" src="./80eeb4_f7798dd6a8324023b23a92fd1924339a~mv2.jpg">
+          <div class="fveil" aria-hidden="true">
+            <div class="ring"><svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="28"></circle><circle class="ring-bar" cx="32" cy="32" r="28"></circle></svg><span class="ring-pct"></span></div>
+            <p class="fveil-text"></p>
+          </div>
+          <span class="badge-ok" aria-hidden="true"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span><span data-i18n="uploaded">Uploaded</span></span>
+          <div class="fbroken" data-i18n="errLoad">This image could not be displayed.</div>
+          <div class="factions">
+            <button type="button" class="ftool" data-replace="main" data-i18n-aria="replace" data-i18n-title="replace" aria-label="Replace" title="Replace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 20v-4h-4"></path></svg></button>
+            <button type="button" class="ftool danger" data-remove="main" data-i18n-aria="remove" data-i18n-title="remove" aria-label="Remove image" title="Remove image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6M14 11v6"></path><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+          </div>
+          <div class="fdrop-over" aria-hidden="true" data-i18n="dropHere">Drop your image here</div>
+        </div>
+      </div>
+        <div class="flink">
+          <button type="button" class="fswap" id="swapBtn" data-i18n-aria="swap" data-i18n-title="swap" disabled="" aria-label="Swap start and end frames" title="Swap start and end frames"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h11l-3-3"></path><path d="M17 17H6l3 3"></path></svg></button>
+        </div>
+      <div class="fcard" data-slot="end" data-phase="idle" data-progress="indeterminate" id="fcard-end">
+        <div class="fcard-head"><span class="fcard-num">2</span><span data-i18n="endLabel">End frame</span></div>
+        <div class="fcard-body">
+          <button type="button" class="fdrop" data-pick="end">
+            <svg class="ants" aria-hidden="true"><rect x="0" y="0" width="100%" height="100%" rx="13" ry="13"></rect></svg>
+            <span class="fdrop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"></path><path d="M7.5 8.5L12 4l4.5 4.5"></path><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path></svg></span>
+            <span class="fdrop-text"><span data-i18n="dropOr">Drop, paste or</span> <b data-i18n="browse">browse</b></span>
+            <span class="fdrop-sub" data-formats="">JPG, PNG or WEBP · up to 5 MB</span>
+          </button>
+          <img class="fimg" alt="" draggable="false">
+          <div class="fveil" aria-hidden="true">
+            <div class="ring"><svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="28"></circle><circle class="ring-bar" cx="32" cy="32" r="28"></circle></svg><span class="ring-pct"></span></div>
+            <p class="fveil-text"></p>
+          </div>
+          <span class="badge-ok" aria-hidden="true"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span><span data-i18n="uploaded">Uploaded</span></span>
+          <div class="fbroken" data-i18n="errLoad">This image could not be displayed.</div>
+          <div class="factions">
+            <button type="button" class="ftool" data-replace="end" data-i18n-aria="replace" data-i18n-title="replace" aria-label="Replace" title="Replace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 20v-4h-4"></path></svg></button>
+            <button type="button" class="ftool danger" data-remove="end" data-i18n-aria="remove" data-i18n-title="remove" aria-label="Remove image" title="Remove image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6M14 11v6"></path><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+          </div>
+          <div class="fdrop-over" aria-hidden="true" data-i18n="dropHere">Drop your image here</div>
+        </div>
+      </div>
+        <button type="button" class="guide" id="guideFrames" tabindex="-1" aria-hidden="true" aria-label="Next, set up your render. Pick your options on the left, then press Generate.">
+          <span class="guide-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M11 6l-6 6 6 6"></path></svg></span>
+          <span class="guide-text"><span class="guide-title">Next, set up your render</span><span class="guide-body">Pick your options on the left, then press Generate.</span></span>
+        </button>
+      </div>
+      <p class="frames-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 21h4"></path><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2l.1.2h4.8l.1-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"></path></svg><span data-i18n="framesTip">The video travels from the start frame to the end frame.</span></p>
+    </div>
+
+    <!-- text-only module (Imagine) -->
+    <div class="view v-info">
+      <div class="info-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.9 4.9 1.8-4.9 1.8L12 16.4l-1.8-4.9-4.9-1.8 4.9-1.8z"></path><path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.8z"></path><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6z"></path></svg>
+      </div>
+      <h2 class="info-title" id="infoTitle">No input image needed</h2>
+      <p class="info-text" id="infoText">Upload a 3D view, elevation or photo of the building. Floor plans aren't supported.</p>
+    </div>
+
+    <div class="toast" id="toast" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5"></path><path d="M12 16.2v.1"></path></svg>
+      <span id="toastText"></span>
+      <button type="button" class="toast-close" id="toastClose" data-i18n-aria="dismiss" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+  </section>
+
+  <p class="sr-only" id="live" aria-live="polite"></p>
+  <input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden="">
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var OK_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+  var BUCKET = 'archivinci-user-inputs';
+  var BUCKET_REGION = 'eu-west-2';  // REGION in backend/dragDrop.jsw: change both together
+  var START_TIMEOUT_MS = 25000;     // no presigned URL by then → give up
+  var READY_RETRY_MS = 400;         // av-ready is repeated until the page answers
+  var READY_MAX_TRIES = 40;
+  var REVEAL_DELAY_MS = 380;        // let the ring reach 100% before revealing
+  var TOAST_MS = 6000;
+  var RING_CIRCUMFERENCE = 175.93;  // 2π · 28
+  var GUIDE_DELAY_MS = 900;         // let the image reveal before the guide slides in
+
+  var I18N = {
+    en: {
+      inputImage: 'Input image', dropLead: 'Drag & drop, paste, or', browse: 'browse',
+      upload: 'Upload image', signIn: 'Sign in to upload', formats: 'JPG, PNG or WEBP · up to {mb} MB',
+      toPaste: 'to paste', dropHere: 'Drop your image here', dropReplace: 'Drop to replace the image',
+      preparing: 'Preparing upload…', uploading: 'Uploading…', finishing: 'Almost there…', uploaded: 'Uploaded',
+      replace: 'Replace', remove: 'Remove image', dismiss: 'Dismiss', currentImage: 'Current input image',
+      defaultHint: 'Upload a 3D view, sketch or photo of your scene.',
+      textTitle: 'Text to image', textHeading: 'No input image needed',
+      errType: 'Please choose a JPG, PNG or WEBP image.', errSize: 'That file is larger than {mb} MB.',
+      errMulti: 'Please add one image at a time.', errNet: 'Upload failed. Please check your connection and try again.',
+      errStart: 'Could not start the upload. Please try again.', errPaste: "Your clipboard doesn't contain an image.",
+      errLoad: 'This image could not be displayed.', signInHint: 'Please sign in to upload your image.',
+      announceDone: 'Image uploaded.', announceRemoved: 'Image removed.',
+      guideTitle: 'Next, set up your render', guideLeft: 'Pick your options on the left, then press Generate.',
+      guideUp: 'Pick your options above, then press Generate.',
+      guideDown: 'Pick your options below, then press Generate.',
+      guideVideoTitle: 'Next, set up your video', guideVideoLeft: 'Pick the camera motion and quality on the left, then press Generate.',
+      guideVideoUp: 'Pick the camera motion and quality above, then press Generate.',
+      guideVideoDown: 'Pick the camera motion and quality below, then press Generate.',
+      guideGenTitle: 'Ready for 360°', guideGenLeft: 'Press Generate on the left to create your HDRI panorama.',
+      guideGenUp: 'Press Generate above to create your HDRI panorama.',
+      guideGenDown: 'Press Generate below to create your HDRI panorama.',
+      startFrameTitle: 'Start frame', framesTitle: 'Start & end frames', videoMode: 'Video mode',
+      modeStart: 'Start frame', modeStartEnd: 'Start & end', startLabel: 'Start frame', endLabel: 'End frame',
+      dropOr: 'Drop, paste or', swap: 'Swap start and end frames',
+      framesTip: 'The video travels from the start frame to the end frame.',
+      dropOnFrame: 'Drop the image onto the frame you want to replace.'
+    },
+    es: {
+      inputImage: 'Imagen de entrada', dropLead: 'Arrastra y suelta, pega o', browse: 'selecciona un archivo',
+      upload: 'Subir imagen', signIn: 'Inicia sesión para subir', formats: 'JPG, PNG o WEBP · hasta {mb} MB',
+      toPaste: 'para pegar', dropHere: 'Suelta tu imagen aquí', dropReplace: 'Suelta para reemplazar la imagen',
+      preparing: 'Preparando la subida…', uploading: 'Subiendo…', finishing: 'Casi listo…', uploaded: 'Subida',
+      replace: 'Reemplazar', remove: 'Quitar imagen', dismiss: 'Cerrar', currentImage: 'Imagen de entrada actual',
+      defaultHint: 'Sube una vista 3D, un boceto o una foto de tu escena.',
+      textTitle: 'Texto a imagen', textHeading: 'No necesitas imagen de entrada',
+      errType: 'Elige una imagen JPG, PNG o WEBP.', errSize: 'El archivo supera los {mb} MB.',
+      errMulti: 'Añade una sola imagen cada vez.', errNet: 'La subida ha fallado. Comprueba tu conexión e inténtalo de nuevo.',
+      errStart: 'No se pudo iniciar la subida. Inténtalo de nuevo.', errPaste: 'El portapapeles no contiene ninguna imagen.',
+      errLoad: 'No se pudo mostrar esta imagen.', signInHint: 'Inicia sesión para subir tu imagen.',
+      announceDone: 'Imagen subida.', announceRemoved: 'Imagen eliminada.',
+      guideTitle: 'Ahora, configura tu render', guideLeft: 'Elige tus opciones a la izquierda y pulsa Generar.',
+      guideUp: 'Elige tus opciones arriba y pulsa Generar.',
+      guideDown: 'Elige tus opciones abajo y pulsa Generar.',
+      guideVideoTitle: 'Ahora, configura tu vídeo', guideVideoLeft: 'Elige el movimiento de cámara y la calidad a la izquierda y pulsa Generar.',
+      guideVideoUp: 'Elige el movimiento de cámara y la calidad arriba y pulsa Generar.',
+      guideVideoDown: 'Elige el movimiento de cámara y la calidad abajo y pulsa Generar.',
+      guideGenTitle: 'Listo para 360°', guideGenLeft: 'Pulsa Generar a la izquierda para crear tu panorama HDRI.',
+      guideGenUp: 'Pulsa Generar arriba para crear tu panorama HDRI.',
+      guideGenDown: 'Pulsa Generar abajo para crear tu panorama HDRI.',
+      startFrameTitle: 'Fotograma inicial', framesTitle: 'Fotogramas inicial y final', videoMode: 'Modo de vídeo',
+      modeStart: 'Fotograma inicial', modeStartEnd: 'Inicio y fin', startLabel: 'Fotograma inicial', endLabel: 'Fotograma final',
+      dropOr: 'Suelta, pega o', swap: 'Intercambiar fotogramas inicial y final',
+      framesTip: 'El vídeo va del fotograma inicial al final.',
+      dropOnFrame: 'Suelta la imagen sobre el fotograma que quieres reemplazar.'
+    },
+    it: {
+      inputImage: 'Immagine di partenza', dropLead: 'Trascina e rilascia, incolla o', browse: 'sfoglia',
+      upload: 'Carica immagine', signIn: 'Accedi per caricare', formats: 'JPG, PNG o WEBP · fino a {mb} MB',
+      toPaste: 'per incollare', dropHere: "Rilascia qui l'immagine", dropReplace: "Rilascia per sostituire l'immagine",
+      preparing: 'Preparazione del caricamento…', uploading: 'Caricamento…', finishing: 'Quasi fatto…', uploaded: 'Caricata',
+      replace: 'Sostituisci', remove: 'Rimuovi immagine', dismiss: 'Chiudi', currentImage: 'Immagine di partenza attuale',
+      defaultHint: 'Carica una vista 3D, uno schizzo o una foto della scena.',
+      textTitle: 'Da testo a immagine', textHeading: "Non serve un'immagine di partenza",
+      errType: "Scegli un'immagine JPG, PNG o WEBP.", errSize: 'Il file supera i {mb} MB.',
+      errMulti: "Aggiungi un'immagine alla volta.", errNet: 'Caricamento non riuscito. Controlla la connessione e riprova.',
+      errStart: 'Impossibile avviare il caricamento. Riprova.', errPaste: 'Gli appunti non contengono immagini.',
+      errLoad: 'Impossibile mostrare questa immagine.', signInHint: "Accedi per caricare l'immagine.",
+      announceDone: 'Immagine caricata.', announceRemoved: 'Immagine rimossa.',
+      guideTitle: 'Ora imposta il tuo render', guideLeft: 'Scegli le opzioni a sinistra, poi premi Genera.',
+      guideUp: 'Scegli le opzioni qui sopra, poi premi Genera.',
+      guideDown: 'Scegli le opzioni qui sotto, poi premi Genera.',
+      guideVideoTitle: 'Ora imposta il tuo video', guideVideoLeft: 'Scegli il movimento di camera e la qualità a sinistra, poi premi Genera.',
+      guideVideoUp: 'Scegli il movimento di camera e la qualità qui sopra, poi premi Genera.',
+      guideVideoDown: 'Scegli il movimento di camera e la qualità qui sotto, poi premi Genera.',
+      guideGenTitle: 'Pronto per il 360°', guideGenLeft: 'Premi Genera a sinistra per creare il tuo panorama HDRI.',
+      guideGenUp: 'Premi Genera qui sopra per creare il tuo panorama HDRI.',
+      guideGenDown: 'Premi Genera qui sotto per creare il tuo panorama HDRI.',
+      startFrameTitle: 'Fotogramma iniziale', framesTitle: 'Fotogrammi iniziale e finale', videoMode: 'Modalità video',
+      modeStart: 'Fotogramma iniziale', modeStartEnd: 'Inizio e fine', startLabel: 'Fotogramma iniziale', endLabel: 'Fotogramma finale',
+      dropOr: 'Rilascia, incolla o', swap: 'Scambia i fotogrammi iniziale e finale',
+      framesTip: 'Il video va dal fotogramma iniziale a quello finale.',
+      dropOnFrame: "Rilascia l'immagine sul fotogramma da sostituire."
+    }
+  };
+  var LOCALES = { en: 'en-US', es: 'es-ES', it: 'it-IT' };
+  var GUIDE_COPY = {
+    setup: { title: 'guideTitle', left: 'guideLeft', up: 'guideUp', down: 'guideDown' },
+    video: { title: 'guideVideoTitle', left: 'guideVideoLeft', up: 'guideVideoUp', down: 'guideVideoDown' },
+    generate: { title: 'guideGenTitle', left: 'guideGenLeft', up: 'guideGenUp', down: 'guideGenDown' }
+  };
+
+  var state = {
+    lang: 'en', mode: 'upload', videoMode: 'start', loggedIn: true, locked: false, maxBytes: 5 * 1024 * 1024,
+    moduleName: '', hint: '',
+    guide: 'off',           // next-step guide on the ready image: 'left' | 'up' | 'down' | 'off' (the page decides)
+    guideKind: 'setup',     // which copy: 'setup' | 'video' | 'generate'
+    guideTimer: null,
+    uploadSeq: 0,           // upload ids, unique across slots
+    pickSlot: 'main',       // slot the file picker is open for
+    heardFromParent: false,
+    dragDepth: 0,
+    toastTimer: null,
+    doneTimer: null
+  };
+
+  // One upload slot. main = the input image / video start frame, end = the video end frame.
+  function newSlot(key) {
+    return {
+      key: key,
+      phase: 'idle',        // idle | busy | ready
+      uploadId: 0,
+      file: null,           // File being uploaded
+      pendingSrc: null,     // object URL of the file being uploaded
+      xhr: null,
+      startTimer: null,
+      committed: null       // image on show: { src, local, name, size }
+    };
+  }
+  var slots = { main: newSlot('main'), end: newSlot('end') };
+
+  function $(id) { return document.getElementById(id); }
+  var app = $('app'), card = $('card'), zone = $('zone'), fileInput = $('file');
+  var preview = $('preview'), frame = $('frame'), ringBar = $('ringBar'), ringPct = $('ringPct'), veilText = $('veilText');
+  var toast = $('toast'), toastText = $('toastText'), live = $('live');
+  var guides = { single: $('guide'), frames: $('guideFrames') };
+  var framesEl = $('frames'), swapBtn = $('swapBtn');
+  var cards = { main: $('fcard-main'), end: $('fcard-end') };
+  var isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || '');
+
+  /*──────── helpers ────────*/
+  function t(key, vars) {
+    var dict = I18N[state.lang] || I18N.en;
+    var s = dict[key] != null ? dict[key] : (I18N.en[key] != null ? I18N.en[key] : key);
+    return vars ? s.replace(/\{(\w+)\}/g, function (m, k) { return vars[k] != null ? vars[k] : m; }) : s;
+  }
+
+  function post(msg) {
+    if (window.parent && window.parent !== window) {
+      try { window.parent.postMessage(msg, '*'); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function slotFor(key) { return key === 'end' ? slots.end : slots.main; }
+  function view() {
+    if (state.mode === 'text') return 'text';
+    return state.mode === 'video' && state.videoMode === 'startEnd' ? 'frames' : 'single';
+  }
+
+  function maxMb() { return Math.round(state.maxBytes / (1024 * 1024)); }
+
+  function formatBytes(bytes) {
+    if (!bytes && bytes !== 0) return '';
+    var locale = LOCALES[state.lang] || 'en-US';
+    var mb = bytes / (1024 * 1024);
+    try {
+      if (mb >= 1) return new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(mb) + ' MB';
+      return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Math.max(1, bytes / 1024)) + ' KB';
+    } catch (e) { return mb >= 1 ? mb.toFixed(1) + ' MB' : Math.round(bytes / 1024) + ' KB'; }
+  }
+
+  function restartClass(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;   // restart the animation
+    el.classList.add(cls);
+  }
+
+  function announce(text) { live.textContent = ''; setTimeout(function () { live.textContent = text; }, 30); }
+
+  function showToast(text, kind) {
+    toastText.textContent = text;
+    toast.classList.toggle('info', kind === 'info');
+    toast.classList.add('show');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(hideToast, TOAST_MS);
+  }
+  function hideToast() { toast.classList.remove('show'); }
+
+  function fail(key, code) {
+    showToast(t(key, { mb: maxMb() }));
+    restartClass(card, 'shake');
+    if (code) post({ kind: 'av-validation-error', code: code });
+  }
+
+  function cardPart(slot, selector) { return cards[slot.key].querySelector(selector); }
+
+  /*──────── rendering ────────*/
+  function setPhase(slot, phase) {
+    slot.phase = phase;
+    if (slot.key === 'main') app.setAttribute('data-phase', phase);   // the single view follows the main slot
+    cards[slot.key].setAttribute('data-phase', phase);
+    if (phase === 'busy') setDrag(false);
+    renderSwap();
+    renderGuide();
+  }
+
+  function renderSwap() {
+    swapBtn.disabled = state.locked || slots.main.phase !== 'ready' || slots.end.phase !== 'ready';
+  }
+
+  // "Next, set up your render ←" on the ready image, until the page says the user found the controls.
+  function renderGuide() {
+    var v = view();
+    var ready = v === 'frames'
+      ? slots.main.phase === 'ready' && slots.end.phase === 'ready'
+      : slots.main.phase === 'ready';
+    var want = state.guide !== 'off' && v !== 'text' && ready && !state.locked;
+    if (state.guide !== 'off') app.setAttribute('data-guide', state.guide);   // kept while fading out
+    var dir = app.getAttribute('data-guide');
+    var copy = GUIDE_COPY[state.guideKind] || GUIDE_COPY.setup;
+    Object.keys(guides).forEach(function (k) {
+      var g = guides[k];
+      var body = t(copy[dir] || copy.left);
+      g.querySelector('.guide-title').textContent = t(copy.title);
+      g.querySelector('.guide-body').textContent = body;
+      g.setAttribute('aria-label', t(copy.title) + '. ' + body);
+      if (!want || k !== v) hideGuide(g);
+    });
+    if (!want) {
+      clearTimeout(state.guideTimer);
+      state.guideTimer = null;
+      return;
+    }
+    var active = guides[v];
+    if (active.classList.contains('show') || state.guideTimer) return;     // shown, or about to be
+    state.guideTimer = setTimeout(function () {
+      state.guideTimer = null;
+      if (guides[view()] !== active) return;
+      active.classList.add('show');
+      active.tabIndex = 0;
+      active.removeAttribute('aria-hidden');
+    }, GUIDE_DELAY_MS);
+  }
+
+  function hideGuide(g) {
+    g.classList.remove('show');
+    g.tabIndex = -1;
+    g.setAttribute('aria-hidden', 'true');
+  }
+
+  function setDrag(on) {
+    app.setAttribute('data-drag', on && (canAccept(slots.main) || canAccept(slots.end)) ? 'true' : 'false');
+    if (!on) setDragTarget(null);
+  }
+
+  function setDragTarget(key) {
+    Object.keys(cards).forEach(function (k) { cards[k].classList.toggle('drag-target', k === key); });
+  }
+
+  function applyI18n() {
+    document.documentElement.lang = state.lang;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i18n-aria]'), function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i18n-title]'), function (el) { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+    $('formats').textContent = t('formats', { mb: maxMb() });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-formats]'), function (el) { el.textContent = t('formats', { mb: maxMb() }); });
+    $('pasteKey').textContent = isMac ? '⌘' : 'Ctrl';
+    $('seg').setAttribute('aria-label', t('videoMode'));
+    if (slots.main.committed) renderFileMeta();
+  }
+
+  function renderContext() {
+    var v = view();
+    app.setAttribute('data-mode', state.mode);
+    app.setAttribute('data-view', v);
+    app.setAttribute('data-vmode', state.videoMode);
+    app.setAttribute('data-auth', state.loggedIn ? 'in' : 'out');
+    app.setAttribute('data-locked', state.locked ? 'true' : 'false');
+
+    var headTitle = $('headTitle');
+    if (state.mode === 'text') headTitle.textContent = t('textTitle');
+    else if (state.mode === 'video') headTitle.textContent = t(v === 'frames' ? 'framesTitle' : 'startFrameTitle') + '*';
+    else headTitle.textContent = t('inputImage') + '*';
+
+    // Video: the Start frame | Start & end switch takes the module chip's place.
+    var seg = $('seg');
+    seg.hidden = state.mode !== 'video';
+    Array.prototype.forEach.call(seg.querySelectorAll('.seg-opt'), function (b) {
+      var on = b.getAttribute('data-vmode') === state.videoMode;
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+
+    var chip = $('chip'), chipText = $('chipText');
+    if (state.moduleName && state.mode !== 'video') {
+      if (chipText.textContent !== state.moduleName) {
+        chipText.textContent = state.moduleName;
+        if (!chip.hidden) restartClass(chip, 'swap');
+      }
+      chip.hidden = false;
+    } else {
+      chip.hidden = true;
+    }
+
+    var hint = $('hint'), hintText = state.hint || t('defaultHint');
+    if (hint.textContent !== hintText) {
+      hint.textContent = hintText;
+      restartClass(hint, 'swap');
+    }
+
+    $('infoTitle').textContent = t('textHeading');
+    $('infoText').textContent = state.hint;
+    $('uploadBtnText').textContent = state.loggedIn ? t('upload') : t('signIn');
+    renderSwap();
+    renderGuide();
+  }
+
+  function setProgress(slot, pct, text) {
+    var c = cards[slot.key];
+    var bars = [cardPart(slot, '.ring-bar')], pcts = [cardPart(slot, '.ring-pct')], texts = [cardPart(slot, '.fveil-text')];
+    var owners = [c];
+    if (slot.key === 'main') { bars.push(ringBar); pcts.push(ringPct); texts.push(veilText); owners.push(app); }
+    owners.forEach(function (o) { o.setAttribute('data-progress', pct == null ? 'indeterminate' : 'determinate'); });
+    var p = pct == null ? null : Math.max(0, Math.min(100, pct));
+    bars.forEach(function (b) { b.style.strokeDashoffset = p == null ? '' : String(RING_CIRCUMFERENCE * (1 - p / 100)); });
+    pcts.forEach(function (el) { el.textContent = p == null ? '' : Math.round(p) + '%'; });
+    if (text) texts.forEach(function (el) { el.textContent = text; });
+  }
+
+  function renderFileMeta() {
+    var main = slots.main;
+    var c = main.committed || {};
+    var name = c.name || (main.file && main.file.name) || t('currentImage');
+    var size = c.size != null ? c.size : (main.file && main.file.size);
+    var parts = [];
+    if (preview.naturalWidth && preview.naturalHeight && !frame.classList.contains('broken')) {
+      parts.push(preview.naturalWidth + ' × ' + preview.naturalHeight + ' px');
+    }
+    if (size) parts.push(formatBytes(size));
+    $('fileName').textContent = name;
+    $('fileName').title = name;
+    $('fileMeta').textContent = parts.join(' · ');
+  }
+
+  function showPreview(slot, src, reveal) {
+    var img = cardPart(slot, '.fimg');
+    cards[slot.key].classList.remove('broken');
+    if (img.getAttribute('src') !== src) img.src = src;
+    if (reveal) restartClass(cards[slot.key], 'revealing');
+    if (slot.key !== 'main') return;
+    frame.classList.remove('broken');
+    if (preview.getAttribute('src') !== src) preview.src = src;
+    renderFileMeta();
+    if (reveal) restartClass(frame, 'revealing');
+  }
+
+  function clearPreview(slot) {
+    cardPart(slot, '.fimg').removeAttribute('src');
+    cards[slot.key].classList.remove('broken', 'just-done');
+    if (slot.key !== 'main') return;
+    preview.removeAttribute('src');
+    frame.classList.remove('broken');
+    app.classList.remove('just-done');
+  }
+
+  function celebrate(slot) {
+    restartClass(cards[slot.key], 'just-done');
+    if (slot.key === 'main') restartClass(app, 'just-done');
+    clearTimeout(state.doneTimer);
+    state.doneTimer = setTimeout(function () {
+      app.classList.remove('just-done');
+      cards.main.classList.remove('just-done');
+      cards.end.classList.remove('just-done');
+    }, 3600);
+  }
+
+  preview.addEventListener('load', function () { frame.classList.remove('broken'); renderFileMeta(); });
+  preview.addEventListener('error', function () {
+    if (!preview.getAttribute('src')) return;
+    frame.classList.add('broken');
+    renderFileMeta();
+  });
+  Object.keys(cards).forEach(function (k) {
+    var img = cards[k].querySelector('.fimg');
+    img.addEventListener('load', function () { cards[k].classList.remove('broken'); });
+    img.addEventListener('error', function () { if (img.getAttribute('src')) cards[k].classList.add('broken'); });
+  });
+
+  /*──────── accepting files ────────*/
+  function canAccept(slot) {
+    if (state.mode === 'text' || state.locked || slot.phase === 'busy') return false;
+    return slot.key === 'main' || view() === 'frames';
+  }
+
+  function requestLogin() {
+    post({ kind: 'av-login-request' });
+    showToast(t('signInHint'), 'info');
+  }
+
+  function openPicker(key) {
+    var slot = slotFor(key);
+    if (!canAccept(slot)) return;
+    if (!state.loggedIn) { requestLogin(); return; }
+    state.pickSlot = slot.key;
+    fileInput.value = '';
+    fileInput.click();
+  }
+
+  function handleFiles(list, slot) {
+    if (!slot || !list || !list.length || !canAccept(slot)) return;
+    if (list.length > 1) { fail('errMulti', 'multiple'); return; }
+    var file = list[0];
+    if (OK_TYPES.indexOf((file.type || '').toLowerCase()) === -1) { fail('errType', 'type'); return; }
+    if (file.size > state.maxBytes) { fail('errSize', 'size'); return; }
+    if (!state.loggedIn) { requestLogin(); return; }
+    startUpload(slot, file);
+  }
+
+  // Where a dropped / pasted image goes: the card under the pointer, else the first empty frame.
+  function targetSlot(key) {
+    if (view() !== 'frames') return slots.main;
+    if (key) return slotFor(key);
+    if (slots.main.phase === 'idle') return slots.main;
+    if (slots.end.phase === 'idle') return slots.end;
+    return null;
+  }
+
+  /*──────── upload flow ────────*/
+  function startUpload(slot, file) {
+    hideToast();
+    state.uploadSeq += 1;
+    var id = state.uploadSeq;
+    slot.uploadId = id;
+    slot.file = file;
+    slot.pendingSrc = URL.createObjectURL(file);
+
+    setPhase(slot, 'busy');
+    setProgress(slot, null, t('preparing'));
+    showPreview(slot, slot.pendingSrc, false);
+    announce(t('preparing'));
+
+    post({ kind: 'av-upload-request', slot: slot.key, name: file.name, type: file.type, size: file.size, uploadId: id });
+
+    clearTimeout(slot.startTimer);
+    slot.startTimer = setTimeout(function () {
+      if (slot.phase === 'busy' && slot.uploadId === id && !slot.xhr) {
+        cancelUpload(slot, 'errStart', 'Timed out waiting for the upload URL');
+      }
+    }, START_TIMEOUT_MS);
+  }
+
+  // Only the ArchiVinci input bucket itself, in the region backend/dragDrop presigns it in: path-style
+  // https://s3.eu-west-2.amazonaws.com/archivinci-user-inputs (what the presign returns) or virtual-hosted
+  // https://archivinci-user-inputs.s3.eu-west-2.amazonaws.com. Anything else is refused: a bucket whose name
+  // merely starts with it (archivinci-user-inputs-x), the same name in another AWS partition, other AWS hosts.
+  function isTrustedUploadUrl(url) {
+    try {
+      var u = new URL(url);
+      if (u.origin === 'https://' + BUCKET + '.s3.' + BUCKET_REGION + '.amazonaws.com') return true;
+      return u.origin === 'https://s3.' + BUCKET_REGION + '.amazonaws.com' &&
+        (u.pathname === '/' + BUCKET || u.pathname.indexOf('/' + BUCKET + '/') === 0);
+    } catch (e) { return false; }
+  }
+
+  function onUploadUrl(m) {
+    var slot = slotFor(m.slot);
+    if (slot.phase !== 'busy' || !slot.file || slot.xhr) return;
+    if (m.uploadId != null && m.uploadId !== slot.uploadId) return;
+    if (!isTrustedUploadUrl(m.uploadUrl)) {
+      cancelUpload(slot, 'errStart', 'Refused an upload URL outside the ArchiVinci bucket');
+      return;
+    }
+    clearTimeout(slot.startTimer);
+    sendToS3(slot, m.uploadUrl, m.fields || {}, m.publicUrl, slot.uploadId);
+  }
+
+  function sendToS3(slot, url, fields, publicUrl, id) {
+    var fd = new FormData();
+    Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
+    fd.append('file', slot.file);           // the file MUST be the last field
+
+    var xhr = new XMLHttpRequest();
+    slot.xhr = xhr;
+    xhr.open('POST', url, true);            // no Content-Type header: the browser sets the multipart boundary
+    setProgress(slot, null, t('uploading')); // spinner until the browser reports measurable progress
+
+    xhr.upload.onprogress = function (e) {
+      if (slot.xhr === xhr && e.lengthComputable) setProgress(slot, Math.min(99, (e.loaded / e.total) * 100), t('uploading'));
+    };
+    xhr.onload = function () {
+      if (slot.xhr !== xhr) return;
+      slot.xhr = null;
+      if (xhr.status >= 200 && xhr.status < 300) {   // S3 POST answers 204
+        setProgress(slot, 100, t('finishing'));
+        finishUpload(slot, publicUrl, id);
+      } else {
+        cancelUpload(slot, 'errNet', 'S3 POST ' + xhr.status);
+      }
+    };
+    xhr.onerror = function () {
+      if (slot.xhr !== xhr) return;
+      slot.xhr = null;
+      cancelUpload(slot, 'errNet', 'Network/CORS');
+    };
+    xhr.send(fd);
+  }
+
+  function finishUpload(slot, publicUrl, id) {
+    var file = slot.file;
+    post({ kind: 'av-upload-done', slot: slot.key, publicUrl: publicUrl, uploadId: id, name: file.name, type: file.type, size: file.size });
+
+    releaseCommitted(slot);
+    slot.committed = { src: slot.pendingSrc, local: true, name: file.name, size: file.size };
+    slot.pendingSrc = null;
+    slot.file = null;
+
+    setTimeout(function () {
+      if (slot.uploadId !== id || slot.phase !== 'busy') return;
+      setPhase(slot, 'ready');
+      if (slot.key === 'main') renderFileMeta();
+      celebrate(slot);
+      announce(t('announceDone'));
+    }, REVEAL_DELAY_MS);
+  }
+
+  // Stop the upload in flight and go back to the previous image (or the drop zone).
+  // `reason` → tell the page (legacy av-upload-error); errKey → toast for the user.
+  function cancelUpload(slot, errKey, reason) {
+    clearTimeout(slot.startTimer);
+    if (slot.xhr) { try { slot.xhr.abort(); } catch (e) { /* ignore */ } slot.xhr = null; }
+    if (reason) post({ kind: 'av-upload-error', slot: slot.key, message: reason, uploadId: slot.uploadId });
+    if (slot.pendingSrc) { URL.revokeObjectURL(slot.pendingSrc); slot.pendingSrc = null; }
+    slot.file = null;
+
+    if (slot.committed) { setPhase(slot, 'ready'); showPreview(slot, slot.committed.src, false); }
+    else { setPhase(slot, 'idle'); clearPreview(slot); }
+
+    if (errKey) { showToast(t(errKey)); restartClass(card, 'shake'); }
+  }
+
+  function releaseCommitted(slot) {
+    if (slot.committed && slot.committed.local) URL.revokeObjectURL(slot.committed.src);
+    slot.committed = null;
+  }
+
+  // Back to the empty drop zone (image removed here or by the page).
+  function resetSlot(slot) {
+    clearTimeout(slot.startTimer);
+    if (slot.xhr) { try { slot.xhr.abort(); } catch (e) { /* ignore */ } slot.xhr = null; }
+    if (slot.pendingSrc) { URL.revokeObjectURL(slot.pendingSrc); slot.pendingSrc = null; }
+    slot.file = null;
+    releaseCommitted(slot);
+    clearPreview(slot);
+    setPhase(slot, 'idle');
+  }
+
+  // An image the page set (session restore, history re-use, swap, iframe reload).
+  function showPageImage(slot, url, name) {
+    if (!url) return;
+    if (slot.committed && slot.committed.src === url) {
+      if (slot.phase !== 'busy') setPhase(slot, 'ready');
+      return;
+    }
+    if (slot.phase === 'busy') cancelUpload(slot, null, 'Replaced by an image set on the page');
+    releaseCommitted(slot);
+    slot.committed = { src: url, local: false, name: name || '', size: null };
+    setPhase(slot, 'ready');
+    showPreview(slot, url, true);
+  }
+
+  function removeImage(key) {
+    var slot = slotFor(key);
+    if (state.locked || slot.phase === 'busy') return;
+    resetSlot(slot);
+    post({ kind: 'av-remove-request', slot: slot.key });
+    announce(t('announceRemoved'));
+  }
+
+  function setVideoMode(mode) {
+    if (state.locked || state.mode !== 'video' || (mode !== 'start' && mode !== 'startEnd') || mode === state.videoMode) return;
+    state.videoMode = mode;
+    renderContext();
+    post({ kind: 'av-video-mode', videoMode: mode });
+  }
+
+  /*──────── page → iframe ────────*/
+  window.addEventListener('message', function (event) {
+    if (event.source !== window.parent) return;     // only the page this iframe is embedded in, not other windows
+    var m = event.data;
+    if (!m || typeof m !== 'object' || typeof m.kind !== 'string' || m.kind.indexOf('av-') !== 0) return;
+    state.heardFromParent = true;
+
+    switch (m.kind) {
+      case 'av-context':
+        if (m.lang) state.lang = I18N[m.lang] ? m.lang : 'en';
+        if (m.mode) state.mode = m.mode === 'text' || m.mode === 'video' ? m.mode : 'upload';
+        if (m.videoMode === 'start' || m.videoMode === 'startEnd') state.videoMode = m.videoMode;
+        if (typeof m.loggedIn === 'boolean') state.loggedIn = m.loggedIn;
+        if (typeof m.locked === 'boolean') state.locked = m.locked;
+        if (m.maxBytes) state.maxBytes = m.maxBytes;
+        state.moduleName = m.moduleName || '';
+        state.hint = m.hint || '';
+        if (m.guide) state.guide = m.guide === 'left' || m.guide === 'up' || m.guide === 'down' ? m.guide : 'off';
+        if (m.guideKind) state.guideKind = GUIDE_COPY[m.guideKind] ? m.guideKind : 'setup';
+        applyI18n();
+        renderContext();
+        break;
+      case 'av-lock':
+        state.locked = !!m.locked;
+        renderContext();
+        break;
+      case 'av-upload-url':
+        onUploadUrl(m);
+        break;
+      case 'av-upload-url-error': {
+        var s = slotFor(m.slot);
+        if (m.uploadId != null && m.uploadId !== s.uploadId) break;
+        if (s.phase === 'busy') cancelUpload(s, m.code === 'auth' ? 'signInHint' : 'errStart', null);
+        break;
+      }
+      case 'av-show-image': {
+        var target = slotFor(m.slot);
+        if (m.sync && target.phase === 'busy') break;
+        showPageImage(target, m.url, m.name);
+        break;
+      }
+      case 'av-clear':
+      case 'av-reset': {
+        var cleared = slotFor(m.slot);
+        if (m.sync && cleared.phase === 'busy') break;
+        resetSlot(cleared);
+        break;
+      }
+      default:
+        break;
+    }
+  });
+
+  /*──────── user input ────────*/
+  zone.addEventListener('click', function (e) {
+    if (e.target.closest('button')) return;
+    openPicker('main');
+  });
+  $('uploadBtn').addEventListener('click', function () { openPicker('main'); });
+  $('browseLink').addEventListener('click', function () { openPicker('main'); });
+  $('replaceBtn').addEventListener('click', function () { openPicker('main'); });
+  $('removeBtn').addEventListener('click', function () { removeImage('main'); });
+  $('toastClose').addEventListener('click', hideToast);
+  Array.prototype.forEach.call(document.querySelectorAll('[data-pick]'), function (b) {
+    b.addEventListener('click', function () { openPicker(b.getAttribute('data-pick')); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-replace]'), function (b) {
+    b.addEventListener('click', function () { openPicker(b.getAttribute('data-replace')); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-remove]'), function (b) {
+    b.addEventListener('click', function () { removeImage(b.getAttribute('data-remove')); });
+  });
+  swapBtn.addEventListener('click', function () {
+    if (swapBtn.disabled) return;
+    restartClass(framesEl, 'swapping');
+    post({ kind: 'av-swap-request' });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.seg-opt'), function (b) {
+    b.addEventListener('click', function () { setVideoMode(b.getAttribute('data-vmode')); });
+    b.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      setVideoMode(state.videoMode === 'start' ? 'startEnd' : 'start');
+      var next = document.querySelector('.seg-opt[data-vmode="' + state.videoMode + '"]');
+      if (next) next.focus();
+    });
+  });
+  Object.keys(guides).forEach(function (k) {
+    guides[k].addEventListener('click', function () {
+      state.guide = 'off';                 // the page confirms with av-context { guide: 'off' }
+      clearTimeout(state.guideTimer);
+      state.guideTimer = null;
+      hideGuide(guides[k]);
+      post({ kind: 'av-guide-click' });
+    });
+  });
+  fileInput.addEventListener('change', function () {
+    var files = fileInput.files ? Array.prototype.slice.call(fileInput.files) : [];
+    fileInput.value = '';               // picking the same file again must fire `change` again
+    handleFiles(files, slotFor(state.pickSlot));
+  });
+
+  function isFileDrag(e) {
+    var types = e.dataTransfer && e.dataTransfer.types;
+    if (!types) return false;
+    for (var i = 0; i < types.length; i++) if (types[i] === 'Files') return true;
+    return false;
+  }
+  function cardKeyAt(e) {
+    var c = e.target && e.target.closest ? e.target.closest('.fcard') : null;
+    return c ? c.getAttribute('data-slot') : null;
+  }
+  document.addEventListener('dragenter', function (e) {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    state.dragDepth += 1;
+    setDrag(true);
+  });
+  document.addEventListener('dragover', function (e) {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    var key = view() === 'frames' ? cardKeyAt(e) : null;
+    if (view() === 'frames') setDragTarget(key);
+    var slot = targetSlot(key);
+    e.dataTransfer.dropEffect = slot && canAccept(slot) ? 'copy' : 'none';
+  });
+  document.addEventListener('dragleave', function (e) {
+    if (!isFileDrag(e)) return;
+    state.dragDepth = Math.max(0, state.dragDepth - 1);
+    if (state.dragDepth === 0) setDrag(false);
+  });
+  document.addEventListener('drop', function (e) {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    state.dragDepth = 0;
+    var key = view() === 'frames' ? cardKeyAt(e) : null;
+    setDrag(false);
+    var slot = targetSlot(key);
+    if (!slot) { showToast(t('dropOnFrame'), 'info'); return; }
+    handleFiles(e.dataTransfer.files, slot);
+  });
+
+  document.addEventListener('paste', function (e) {
+    var slot = targetSlot(null);
+    if (!slot || !canAccept(slot)) return;
+    var cd = e.clipboardData;
+    if (!cd) return;
+    var files = [];
+    if (cd.files && cd.files.length) {
+      files = Array.prototype.slice.call(cd.files);
+    } else if (cd.items) {
+      for (var i = 0; i < cd.items.length; i++) {
+        if (cd.items[i].kind === 'file') { var pasted = cd.items[i].getAsFile(); if (pasted) files.push(pasted); }
+      }
+    }
+    var images = files.filter(function (f) { return /^image\//i.test(f.type || ''); });
+    if (!images.length) { if (files.length) fail('errPaste', 'paste'); return; }
+    e.preventDefault();
+    handleFiles([images[0]], slot);
+  });
+
+  /*──────── boot ────────*/
+  applyI18n();
+  renderContext();
+
+  var readyTries = 0;
+  (function sayReady() {
+    if (state.heardFromParent || readyTries >= READY_MAX_TRIES) return;
+    readyTries += 1;
+    post({ kind: 'av-ready', version: 3 });
+    setTimeout(sayReady, READY_RETRY_MS);
+  })();
+})();
+</script>
+
+</body></html>
